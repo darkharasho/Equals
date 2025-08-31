@@ -5,6 +5,7 @@ let tabs = [{ name: 'Tab 1', lines: [''] }];
 let currentTab = 0;
 let lastKey = '';
 let lineResults = [];
+let vars = {};
 
 function getCaret(el) {
   const sel = window.getSelection();
@@ -129,11 +130,21 @@ function formatNumber(num, sym, decimals) {
   }
 }
 
+function esc(str) {
+  return str.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+}
+
 function highlight(text) {
-  return text.replace(/#\d+|[$€£]?\d+(?:\.\d+)?%?/g, (match) => {
-    if (match.startsWith('#')) {
-      const n = match.slice(1);
-      return `<span class="rowref" data-ref="${n}">${match}</span>`;
+  if (/^\s*#\s/.test(text)) {
+    return `<span class="comment">${esc(text)}</span>`;
+  }
+  const safe = esc(text);
+  return safe.replace(/\$[a-zA-Z_]\w*|""|[$€£]?\d+(?:\.\d+)?%?/g, (match) => {
+    if (match === '""') {
+      return '<span class="last">""</span>';
+    }
+    if (match.startsWith('$') && isNaN(match[1])) {
+      return `<span class="variable">${match}</span>`;
     }
     if (match.endsWith('%')) {
       const num = match.slice(0, -1);
@@ -142,7 +153,7 @@ function highlight(text) {
       return `<span class="percent">${formatNumber(n, null, decs)}%</span>`;
     }
     const sym = match[0];
-    if (currencyMap[sym]) {
+    if (currencyMap[sym] && /^\d/.test(match.slice(1))) {
       const num = match.slice(1);
       const decs = (num.split('.')[1] || '').length;
       const n = Number(num || 0);
@@ -155,12 +166,15 @@ function highlight(text) {
 }
 
 function compute(text, results) {
-  if (!text.trim()) return { display: '', value: null };
-  const currencyMatch = text.match(/[$€£]/);
-  let expr = text
-    .replace(/#(\d+)/g, (_, n) => {
-      const idx = Number(n) - 1;
-      const v = results[idx];
+  if (!text.trim() || /^\s*#\s/.test(text)) return { display: '', value: null };
+  const assign = text.match(/^\s*\$([a-zA-Z_]\w*)\s*=\s*(.+)$/);
+  let exprText = assign ? assign[2] : text;
+  const currencyMatch = exprText.match(/[$€£]/);
+  const last = [...results].reverse().find(v => typeof v === 'number') ?? 0;
+  let expr = exprText
+    .replace(/""/g, last)
+    .replace(/\$([a-zA-Z_]\w*)/g, (_, n) => {
+      const v = vars[n];
       return typeof v === 'number' ? v : 0;
     })
     .replace(/([0-9.]+)\s*([+\-])\s*([0-9.]+)%/g, (_, a, op, b) => `${a}${op}${a}*(${b}/100)`)
@@ -171,6 +185,7 @@ function compute(text, results) {
   try {
     const res = math.evaluate(expr);
     if (typeof res === 'number') {
+      if (assign) vars[assign[1]] = res;
       const display = formatNumber(res, currencyMatch ? currencyMatch[0] : null, currencyMatch ? 2 : undefined);
       return { display, value: res };
     }
@@ -180,24 +195,10 @@ function compute(text, results) {
   }
 }
 
-function bindRowRefs(el) {
-  el.querySelectorAll('.rowref').forEach(ref => {
-    ref.addEventListener('mouseenter', () => {
-      const n = Number(ref.dataset.ref) - 1;
-      const target = container.querySelector(`.res[data-index="${n}"]`);
-      if (target) target.classList.add('ref-hover');
-    });
-    ref.addEventListener('mouseleave', () => {
-      const n = Number(ref.dataset.ref) - 1;
-      const target = container.querySelector(`.res[data-index="${n}"]`);
-      if (target) target.classList.remove('ref-hover');
-    });
-  });
-}
-
 function recalc() {
   const lines = tabs[currentTab].lines;
   lineResults = [];
+  vars = {};
   lines.forEach((text, idx) => {
     const { display, value } = compute(text, lineResults);
     const resEl = container.querySelector(`.res[data-index="${idx}"]`);
@@ -232,6 +233,7 @@ function renderTab() {
   container.innerHTML = '';
   const lines = tabs[currentTab].lines;
   lineResults = [];
+  vars = {};
   lines.forEach((text, index) => {
     const line = document.createElement('div');
     line.className = 'line';
@@ -246,7 +248,6 @@ function renderTab() {
     expr.contentEditable = true;
     expr.dataset.index = index;
     expr.innerHTML = highlight(text);
-    bindRowRefs(expr);
     expr.addEventListener('input', onInput);
     expr.addEventListener('keydown', onKey);
 
@@ -287,7 +288,6 @@ function onInput(e) {
   lastKey = '';
   tabs[currentTab].lines[index] = raw;
   e.target.innerHTML = highlight(raw);
-  bindRowRefs(e.target);
   setCaret(e.target, caret);
   recalc();
 }
@@ -301,12 +301,14 @@ function onKey(e) {
     renderTab();
     const next = container.querySelector(`.expr[data-index="${index + 1}"]`);
     next.focus();
-  } else if (e.key === 'Backspace' && e.target.innerText === '' && index > 0) {
+  } else if (e.key === 'Backspace' && e.target.innerText === '') {
     e.preventDefault();
-    tabs[currentTab].lines.splice(index, 1);
-    renderTab();
-    const prev = container.querySelector(`.expr[data-index="${index - 1}"]`);
-    prev.focus();
+    if (tabs[currentTab].lines.length > 1) {
+      tabs[currentTab].lines.splice(index, 1);
+      renderTab();
+      const prev = container.querySelector(`.expr[data-index="${Math.max(index - 1, 0)}"]`);
+      if (prev) prev.focus();
+    }
   }
   saveState();
 }

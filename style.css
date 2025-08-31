@@ -20,9 +20,10 @@ body {
   --text-color: #eaeaea;
   --number-color: #7aa2f7;
   --answer-color: #ffb454;
-  --percent-color: #98c379;
+  --percent-color: #56b6c2;
   --currency-color: #bb87f8;
-  --ref-color: #c678dd;
+  --var-color: #c678dd;
+  --comment-color: #6a9955;
   --settings-bg: rgba(0,0,0,0.6);
   --settings-border: rgba(255,255,255,0.2);
   --divider-color: rgba(255,255,255,0.05);
@@ -36,13 +37,14 @@ body.light {
   --text-color: #111;
   --number-color: #004aad;
   --answer-color: #b35a00;
-  --percent-color: #137333;
+  --percent-color: #006b75;
   --currency-color: #6a1b9a;
+  --var-color: #8e44ad;
+  --comment-color: #008000;
   --settings-bg: rgba(255,255,255,0.7);
   --settings-border: rgba(0,0,0,0.2);
   --divider-color: rgba(0,0,0,0.15);
   --linenum-bg: rgba(0,0,0,0.05);
-  --ref-color: #8e44ad;
   background: transparent;
 }
 
@@ -120,15 +122,13 @@ body.light {
   cursor: pointer;
 }
 
-.res.ref-hover {
-  text-decoration: underline;
-}
-
 .number { color: var(--number-color); }
 .answer { color: var(--answer-color); }
 .percent { color: var(--percent-color); }
 .currency { color: var(--currency-color); }
-.rowref { color: var(--ref-color); }
+.variable { color: var(--var-color); }
+.last { color: var(--var-color); }
+.comment { color: var(--comment-color); }
 
 #tabs {
   margin-right: 4px;
