@@ -94,7 +94,16 @@ function renderTab() {
 
 function onInput(e) {
   const index = Number(e.target.dataset.index);
-  const raw = e.target.innerText.replace(/,/g, '');
+  let raw = e.target.innerText.replace(/,/g, '');
+  raw = raw.replace(/([$€£])(\d+)(?:\.(\d{2}))?(\d*)/g, (_, sym, intp, dec = '', extra = '') => {
+    if (dec === '00' && extra) {
+      intp += extra;
+      dec = '';
+    } else {
+      dec += extra;
+    }
+    return sym + intp + (dec ? '.' + dec : '');
+  });
   tabs[currentTab].lines[index] = raw;
   e.target.innerHTML = highlight(raw);
   placeCaretAtEnd(e.target);
@@ -142,15 +151,27 @@ function renderTabMenu() {
       tabMenu.classList.add('hidden');
       renderTab();
     });
-    const edit = document.createElement('span');
-    edit.className = 'tab-edit';
-    edit.textContent = '✎';
-    edit.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const newName = prompt('Tab name', t.name || `Tab ${idx + 1}`);
-      if (newName) t.name = newName;
-      renderTabMenu();
-    });
+      const edit = document.createElement('span');
+      edit.className = 'tab-edit';
+      edit.textContent = '✎';
+      edit.addEventListener('click', (e) => {
+        e.stopPropagation();
+        nameSpan.contentEditable = true;
+        nameSpan.focus();
+        document.execCommand('selectAll', false, null);
+        const finish = () => {
+          nameSpan.contentEditable = false;
+          t.name = nameSpan.textContent.trim() || `Tab ${idx + 1}`;
+          renderTabMenu();
+        };
+        nameSpan.addEventListener('blur', finish, { once: true });
+        nameSpan.addEventListener('keydown', (ev) => {
+          if (ev.key === 'Enter') {
+            ev.preventDefault();
+            finish();
+          }
+        });
+      });
     const del = document.createElement('span');
     del.className = 'tab-delete';
     del.textContent = '×';
