@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, nativeTheme } = require('electron');
 const path = require('path');
 
 function createWindow() {
@@ -31,8 +31,13 @@ ipcMain.on('window:minimize', (e) => {
 
 ipcMain.on('theme', (e, theme) => {
   const win = BrowserWindow.fromWebContents(e.sender);
-  if (theme === 'acrylic') win.setBackgroundMaterial('acrylic');
-  else win.setBackgroundMaterial('mica');
+  if (theme === 'acrylic') {
+    win.setBackgroundMaterial('acrylic');
+    nativeTheme.themeSource = 'dark';
+  } else {
+    win.setBackgroundMaterial('mica');
+    nativeTheme.themeSource = theme === 'light' ? 'light' : 'dark';
+  }
 });
 
 ipcMain.on('window:maximize', (e) => {
@@ -52,8 +57,8 @@ ipcMain.on('window:resize', (e, size) => {
   const h = Number(size?.height);
   if (Number.isFinite(w) && Number.isFinite(h)) {
     win.setResizable(true);
-    win.setSize(w, h);
     win.setMinimumSize(w, h);
+    win.setSize(w, h);
     setTimeout(() => win.setResizable(false), 0);
   }
 });
