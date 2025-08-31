@@ -264,6 +264,13 @@ body.light .window-btn:hover {
   color: var(--text-color);
 }
 
+.setting select option.grad-option {
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
 .version {
   margin-top: auto;
   text-align: right;
