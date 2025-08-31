@@ -7,7 +7,7 @@
     "start": "electron .",
     "test": "echo 'No tests specified'",
     "prebuild": "node scripts/clean-dist.js",
-    "build": "electron-builder --publish=never"
+    "build": "node app/scripts/build-installer.js"
   },
   "keywords": [],
   "author": "",
@@ -17,8 +17,10 @@
     "mathjs": "^14.6.0"
   },
   "devDependencies": {
+    "adm-zip": "^0.5.16",
     "electron": "^37.4.0",
     "electron-builder": "^26.0.12",
+    "electron-packager": "^17.1.2",
     "rimraf": "^6.0.1"
   },
   "build": {
