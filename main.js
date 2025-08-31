@@ -54,7 +54,7 @@ ipcMain.on('window:resize', (e, size) => {
     win.setResizable(true);
     win.setSize(w, h);
     win.setMinimumSize(w, h);
-    win.setResizable(false);
+    setTimeout(() => win.setResizable(false), 0);
   }
 });
 

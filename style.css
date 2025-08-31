@@ -22,6 +22,7 @@ body {
   --answer-color: #ffb454;
   --percent-color: #98c379;
   --currency-color: #bb87f8;
+  --settings-bg: rgba(0,0,0,0.3);
   border-image: linear-gradient(135deg, var(--grad1), var(--grad2)) 1;
   border-radius: 16px;
   overflow: hidden;
@@ -33,6 +34,7 @@ body.light {
   --answer-color: #b35a00;
   --percent-color: #137333;
   --currency-color: #6a1b9a;
+  --settings-bg: rgba(255,255,255,0.7);
   background: transparent;
 }
 
@@ -190,7 +192,7 @@ body.light .window-btn:hover {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  background: linear-gradient(135deg, var(--grad1), var(--grad2));
+  background: var(--settings-bg);
   color: var(--text-color);
 }
 
@@ -198,6 +200,7 @@ body.light .window-btn:hover {
 
 .setting select,
 .setting input {
+  width: 100%;
   background: rgba(0,0,0,0.3);
   color: var(--text-color);
   border: 1px solid rgba(255,255,255,0.2);
@@ -206,6 +209,7 @@ body.light .window-btn:hover {
 
 body.light .setting select,
 body.light .setting input {
-  background: rgba(255,255,255,0.6);
+  background: rgba(255,255,255,0.9);
   border: 1px solid rgba(0,0,0,0.2);
+  color: #000;
 }
