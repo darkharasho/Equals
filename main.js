@@ -1,12 +1,12 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 
 function createWindow() {
   const win = new BrowserWindow({
-    width: 216,
-    height: 216,
-    minWidth: 216,
-    minHeight: 216,
+    width: 250,
+    height: 250,
+    minWidth: 250,
+    minHeight: 250,
     frame: false,
     transparent: true,
     titleBarStyle: 'hidden',
@@ -20,6 +20,22 @@ function createWindow() {
 
   win.loadFile('index.html');
 }
+
+ipcMain.on('window:minimize', (e) => {
+  const win = BrowserWindow.fromWebContents(e.sender);
+  win.minimize();
+});
+
+ipcMain.on('window:maximize', (e) => {
+  const win = BrowserWindow.fromWebContents(e.sender);
+  if (win.isMaximized()) win.unmaximize();
+  else win.maximize();
+});
+
+ipcMain.on('window:close', (e) => {
+  const win = BrowserWindow.fromWebContents(e.sender);
+  win.close();
+});
 
 app.whenReady().then(() => {
   createWindow();

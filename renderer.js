@@ -1,4 +1,5 @@
 const math = require('mathjs');
+const { ipcRenderer } = require('electron');
 
 let tabs = [{ lines: [''] }];
 let currentTab = 0;
@@ -6,6 +7,13 @@ let currentTab = 0;
 const container = document.getElementById('container');
 const tabBtn = document.getElementById('tab-btn');
 const tabMenu = document.getElementById('tab-menu');
+const minBtn = document.getElementById('min-btn');
+const maxBtn = document.getElementById('max-btn');
+const closeBtn = document.getElementById('close-btn');
+
+minBtn.addEventListener('click', () => ipcRenderer.send('window:minimize'));
+maxBtn.addEventListener('click', () => ipcRenderer.send('window:maximize'));
+closeBtn.addEventListener('click', () => ipcRenderer.send('window:close'));
 
 function highlight(text) {
   return text

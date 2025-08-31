@@ -6,9 +6,16 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div id="tabs" class="no-drag">
-    <div id="tab-btn">+</div>
-    <div id="tab-menu" class="hidden"></div>
+  <div id="titlebar">
+    <div id="tabs" class="no-drag">
+      <div id="tab-btn">+</div>
+      <div id="tab-menu" class="hidden"></div>
+    </div>
+    <div id="window-controls" class="no-drag">
+      <div class="window-btn" id="min-btn">-</div>
+      <div class="window-btn" id="max-btn">&#9633;</div>
+      <div class="window-btn" id="close-btn">&#10005;</div>
+    </div>
   </div>
   <div id="container"></div>
   <script src="renderer.js"></script>

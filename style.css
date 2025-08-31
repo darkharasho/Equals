@@ -1,17 +1,27 @@
 body {
   margin: 0;
-  width: 216px;
-  height: 216px;
-  overflow-y: auto;
+  width: 250px;
+  height: 250px;
   font-family: monospace;
   color: #fff;
   background: transparent;
+}
+
+#titlebar {
+  height: 24px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  background: rgba(255,255,255,0.05);
   -webkit-app-region: drag;
 }
 
+.no-drag { -webkit-app-region: no-drag; }
+
 #container {
   padding: 8px;
-  -webkit-app-region: no-drag;
+  height: calc(100% - 24px);
+  overflow-y: auto;
 }
 
 .line {
@@ -38,10 +48,8 @@ body {
 .currency { color: #bb87f8; }
 
 #tabs {
-  position: fixed;
-  top: 4px;
-  right: 4px;
-  z-index: 10;
+  margin-right: 4px;
+  position: relative;
 }
 
 #tab-btn {
@@ -75,3 +83,24 @@ body {
 }
 
 .hidden { display: none; }
+
+#window-controls {
+  display: flex;
+}
+
+.window-btn {
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #fff;
+  font-size: 12px;
+  margin-left: 4px;
+  border-radius: 2px;
+}
+
+.window-btn:hover {
+  background: rgba(255,255,255,0.1);
+}
