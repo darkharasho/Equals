@@ -447,8 +447,9 @@ function onKey(e) {
     if (target) {
       target.focus();
       setCaret(target, 0);
+      target.scrollIntoView({ block: 'nearest' });
     }
-  } else if (e.key === 'Backspace' && e.target.innerText === '') {
+  } else if ((e.key === 'Backspace' || e.key === 'Delete') && e.target.innerText === '') {
     e.preventDefault();
     if (tabs[currentTab].lines.length > 1) {
       tabs[currentTab].lines.splice(index, 1);
@@ -457,6 +458,7 @@ function onKey(e) {
       if (prev) {
         prev.focus();
         setCaret(prev, prev.innerText.length);
+        prev.scrollIntoView({ block: 'nearest' });
       }
     }
   } else if (e.key === 'ArrowUp') {
