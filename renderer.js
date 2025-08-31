@@ -70,7 +70,7 @@ function loadState() {
     if (saved.settings) {
       themeSelect.value = saved.settings.theme || 'dark';
       gradientSelect.value = saved.settings.gradient || '#bb87f8,#7aa2f7';
-      sizeSelect.value = saved.settings.size || '250,250';
+      sizeSelect.value = (saved.settings.size && saved.settings.size.includes(',')) ? saved.settings.size : '250,250';
       fontSizeInput.value = saved.settings.fontSize || 16;
     }
   } catch {}
@@ -89,7 +89,9 @@ function applySettings() {
   document.body.style.setProperty('--grad1', c1);
   document.body.style.setProperty('--grad2', c2);
   const [w, h] = sizeSelect.value.split(',').map(Number);
-  ipcRenderer.send('window:resize', { width: w, height: h });
+  if (Number.isFinite(w) && Number.isFinite(h)) {
+    ipcRenderer.send('window:resize', { width: w, height: h });
+  }
   const size = Number(fontSizeInput.value) || 16;
   document.body.style.fontSize = size + 'px';
 }
@@ -322,7 +324,9 @@ gradientSelect.addEventListener('change', (e) => {
 
 sizeSelect.addEventListener('change', (e) => {
   const [w, h] = e.target.value.split(',').map(Number);
-  ipcRenderer.send('window:resize', { width: w, height: h });
+  if (Number.isFinite(w) && Number.isFinite(h)) {
+    ipcRenderer.send('window:resize', { width: w, height: h });
+  }
   saveState();
 });
 

@@ -48,10 +48,14 @@ ipcMain.on('window:close', (e) => {
 
 ipcMain.on('window:resize', (e, size) => {
   const win = BrowserWindow.fromWebContents(e.sender);
-  win.setResizable(true);
-  win.setSize(size.width, size.height);
-  win.setMinimumSize(size.width, size.height);
-  win.setResizable(false);
+  const w = Number(size?.width);
+  const h = Number(size?.height);
+  if (Number.isFinite(w) && Number.isFinite(h)) {
+    win.setResizable(true);
+    win.setSize(w, h);
+    win.setMinimumSize(w, h);
+    win.setResizable(false);
+  }
 });
 
 app.whenReady().then(() => {
