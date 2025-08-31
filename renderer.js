@@ -362,14 +362,7 @@ function onInput(e) {
   e.target.innerHTML = highlight(raw, index);
   attachRefEvents(e.target);
   setCaret(e.target, caret);
-  // sync lines in case of multi-line edits
-  const exprs = Array.from(container.querySelectorAll('.expr'));
-  tabs[currentTab].lines = exprs.map(el => el.innerText.replace(/,/g, ''));
-  exprs.forEach((el, i) => el.dataset.index = i);
-  container.querySelectorAll('.res').forEach((el, i) => el.dataset.index = i);
   recalc();
-  const newTarget = container.querySelector(`.expr[data-index="${Math.min(index, tabs[currentTab].lines.length - 1)}"]`);
-  if (newTarget) setCaret(newTarget, caret);
 }
 
 function onKey(e) {
