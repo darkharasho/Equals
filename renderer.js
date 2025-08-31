@@ -176,9 +176,13 @@ function showToast(msg) {
 }
 
 function updateDivider() {
-  const firstRes = container.querySelector('.res');
-  if (firstRes) {
-    container.style.setProperty('--divider-left', firstRes.offsetLeft + 'px');
+  const results = container.querySelectorAll('.res');
+  if (results.length) {
+    let minLeft = Infinity;
+    results.forEach(r => {
+      if (r.offsetLeft < minLeft) minLeft = r.offsetLeft;
+    });
+    container.style.setProperty('--divider-left', minLeft + 'px');
   }
 }
 
@@ -236,6 +240,7 @@ function onInput(e) {
   const res = e.target.parentNode.querySelector('.res');
   res.textContent = result;
   res.dataset.full = result;
+  updateDivider();
   saveState();
 }
 
