@@ -219,7 +219,7 @@ function compute(text, results, metas) {
   }
 }
 
-function recalc() {
+function recalc(focusIdx = null, caretPos = null) {
   const lines = tabs[currentTab].lines;
   lineResults = [];
   lineMeta = [];
@@ -240,6 +240,10 @@ function recalc() {
     lineMeta.push({ value, sym, decimals, display });
     if (assign) vars[assign] = { value, sym, decimals, display, line: idx };
   });
+  if (focusIdx !== null && caretPos !== null) {
+    const expr = container.querySelector(`.expr[data-index="${focusIdx}"]`);
+    if (expr) setCaret(expr, caretPos);
+  }
   updateDivider();
   saveState();
 }
@@ -360,10 +364,7 @@ function onInput(e) {
   });
   lastKey = '';
   tabs[currentTab].lines[index] = raw;
-  e.target.innerHTML = highlight(raw, index);
-  attachRefEvents(e.target);
-  setCaret(e.target, caret);
-  recalc();
+  recalc(index, caret);
 }
 
 function onKey(e) {
