@@ -5,14 +5,29 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "test": "echo 'No tests specified'"
+    "test": "echo 'No tests specified'",
+    "build": "electron-builder --publish=never"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "electron": "^37.4.0",
     "mathjs": "^14.6.0"
+  },
+  "devDependencies": {
+    "electron": "^37.4.0",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "com.equals.app",
+    "productName": "Equals",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "**/*",
+      "!dist/**"
+    ]
   }
 }

@@ -12,9 +12,14 @@ A tiny Electron calculator that evaluates each line as you type. Expressions are
 - Copyable results and persistent tabs/settings across sessions
 - Configurable gradients, themes, window size, and font size
 
+## Building
+1. Run `npm install`
+2. Create an installer with `npm run build`
+
 ## Contributing
 1. Fork and clone the repository
 2. Run `npm install`
 3. Make your changes with `npm test` to verify
-4. Submit a pull request describing your update
+4. Generate installers with `npm run build`
+5. Submit a pull request describing your update
 
