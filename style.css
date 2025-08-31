@@ -27,6 +27,7 @@ body {
   --settings-bg: rgba(16,16,16,0.9);
   --settings-border: rgba(255,255,255,0.1);
   --divider-color: rgba(255,255,255,0.05);
+  --color-scheme: dark;
   border-image: linear-gradient(135deg, var(--grad1), var(--grad2)) 1;
   border-radius: 16px;
   overflow: hidden;
@@ -43,6 +44,7 @@ body.light {
   --settings-bg: rgba(255,255,255,0.8);
   --settings-border: rgba(0,0,0,0.1);
   --divider-color: rgba(0,0,0,0.15);
+  --color-scheme: light;
   background: transparent;
 }
 
@@ -251,6 +253,7 @@ body.light .window-btn:hover {
   -webkit-appearance: none;
   appearance: none;
   box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
+  color-scheme: var(--color-scheme);
 }
 
 .setting select:focus,
@@ -260,10 +263,12 @@ body.light .window-btn:hover {
 }
 
 .setting select option {
+  background: var(--settings-bg);
   color: var(--text-color);
 }
 
 .setting select option.grad-option {
+  color: transparent;
   background-color: transparent;
   -webkit-background-clip: text;
   background-clip: text;
