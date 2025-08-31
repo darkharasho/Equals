@@ -185,15 +185,15 @@ function compute(text, results, metas) {
   let sym = null;
   let decimals;
   exprText = exprText.replace(/([$€£])(?=\d)/g, m => { sym = sym || m; decimals = 2; return ''; });
-  let lastMeta = { idx: -1, meta: null };
+  let last = null;
   for (let i = metas.length - 1; i >= 0; i--) {
     const m = metas[i];
-    if (m && typeof m.value === 'number') { lastMeta = { idx: i, meta: m }; break; }
+    if (m && typeof m.value === 'number') { last = m; break; }
   }
   exprText = exprText
     .replace(/""/g, () => {
-      if (!sym && lastMeta.meta && lastMeta.meta.sym) { sym = lastMeta.meta.sym; decimals = lastMeta.meta.decimals; }
-      return lastMeta.meta ? lastMeta.meta.value : 0;
+      if (!sym && last && last.sym) { sym = last.sym; decimals = last.decimals; }
+      return last ? last.value : 0;
     })
     .replace(/\$([a-zA-Z_]\w*)/g, (_, n) => {
       const v = vars[n];
@@ -211,11 +211,11 @@ function compute(text, results, metas) {
     const res = math.evaluate(exprText);
     if (typeof res === 'number') {
       const display = formatNumber(res, sym, sym ? 2 : decimals);
-      return { display, value: res, sym, decimals: sym ? 2 : decimals, assign: assign ? assign[1] : null, lastIndex: lastMeta.idx };
+      return { display, value: res, sym, decimals: sym ? 2 : decimals, assign: assign ? assign[1] : null };
     }
-    return { display: '', value: null, sym: null, decimals: undefined, assign: null, lastIndex: lastMeta.idx };
+    return { display: '', value: null, sym: null, decimals: undefined, assign: null };
   } catch {
-    return { display: '', value: null, sym: null, decimals: undefined, assign: null, lastIndex: lastMeta.idx };
+    return { display: '', value: null, sym: null, decimals: undefined, assign: null };
   }
 }
 
