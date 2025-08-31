@@ -3,10 +3,10 @@ const path = require('path');
 
 function createWindow() {
   const win = new BrowserWindow({
-    width: 216,
-    height: 216,
-    minWidth: 216,
-    minHeight: 216,
+    width: 250,
+    height: 250,
+    minWidth: 250,
+    minHeight: 250,
     resizable: false,
     frame: false,
     transparent: true,
@@ -48,8 +48,10 @@ ipcMain.on('window:close', (e) => {
 
 ipcMain.on('window:resize', (e, size) => {
   const win = BrowserWindow.fromWebContents(e.sender);
+  win.setResizable(true);
   win.setSize(size.width, size.height);
   win.setMinimumSize(size.width, size.height);
+  win.setResizable(false);
 });
 
 app.whenReady().then(() => {

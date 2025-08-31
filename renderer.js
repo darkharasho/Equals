@@ -5,6 +5,40 @@ let tabs = [{ name: 'Tab 1', lines: [''] }];
 let currentTab = 0;
 let lastKey = '';
 
+function getCaret(el) {
+  const sel = window.getSelection();
+  if (!sel.rangeCount) return 0;
+  const range = sel.getRangeAt(0);
+  const pre = range.cloneRange();
+  pre.selectNodeContents(el);
+  pre.setEnd(range.endContainer, range.endOffset);
+  return pre.toString().length;
+}
+
+function setCaret(el, pos) {
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  let stack = [el], node, offset = 0;
+  while ((node = stack.pop())) {
+    if (node.nodeType === 3) {
+      const next = offset + node.length;
+      if (pos <= next) {
+        range.setStart(node, pos - offset);
+        range.collapse(true);
+        break;
+      }
+      offset = next;
+    } else {
+      for (let i = node.childNodes.length - 1; i >= 0; i--) {
+        stack.push(node.childNodes[i]);
+      }
+    }
+  }
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+}
+
 const container = document.getElementById('container');
 const tabBtn = document.getElementById('tab-btn');
 const settingsBtn = document.getElementById('settings-btn');
@@ -36,7 +70,7 @@ function loadState() {
     if (saved.settings) {
       themeSelect.value = saved.settings.theme || 'dark';
       gradientSelect.value = saved.settings.gradient || '#bb87f8,#7aa2f7';
-      sizeSelect.value = saved.settings.size || '216,216';
+      sizeSelect.value = saved.settings.size || '250,250';
       fontSizeInput.value = saved.settings.fontSize || 16;
     }
   } catch {}
@@ -158,6 +192,7 @@ function renderTab() {
 
 function onInput(e) {
   const index = Number(e.target.dataset.index);
+  const caret = getCaret(e.target);
   let raw = e.target.innerText.replace(/,/g, '');
   if (lastKey && (lastKey === ' ' || '+-*/'.includes(lastKey))) {
     raw = raw.replace(/([$€£])(\d+)(?:\.(\d{0,2}))?/g, (_, sym, intp, dec = '') => {
@@ -165,13 +200,13 @@ function onInput(e) {
       return sym + intp + '.' + dec;
     });
   }
-  raw = raw.replace(/([$€£])(\d+)(?:\.(\d*))?/g, (_, sym, intp, dec = '') => {
-    return sym + intp + (dec ? '.' + dec.slice(0, 2) : '');
+  raw = raw.replace(/([$€£])(\d+)(\.?)(\d*)/g, (_, sym, intp, dot, dec) => {
+    return sym + intp + (dot ? '.' + dec.slice(0, 2) : '');
   });
   lastKey = '';
   tabs[currentTab].lines[index] = raw;
   e.target.innerHTML = highlight(raw);
-  placeCaretAtEnd(e.target);
+  setCaret(e.target, caret);
   const result = compute(raw);
   const res = e.target.parentNode.querySelector('.res');
   res.textContent = result;
@@ -196,15 +231,6 @@ function onKey(e) {
     prev.focus();
   }
   saveState();
-}
-
-function placeCaretAtEnd(el) {
-  const range = document.createRange();
-  range.selectNodeContents(el);
-  range.collapse(false);
-  const sel = window.getSelection();
-  sel.removeAllRanges();
-  sel.addRange(range);
 }
 
 function renderTabMenu() {
