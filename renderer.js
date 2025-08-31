@@ -213,7 +213,10 @@ function highlight(text, idx = 0) {
   }
   const safe = esc(text);
   const lastIdx = findLastIndex(idx);
-  return safe.replace(/\$[a-zA-Z_]\w*|""|\d{1,2}:\d{2}(?:am|pm)?|\d+\s*(?:hr|h|m|min|s|sec)|[$€£]?\d+(?:\.\d+)?%?/gi, (match) => {
+  return safe.replace(/\$[a-zA-Z_]\w*|""|\d{1,2}:\d{2}(?:am|pm)?|\d+\s*(?:hr|h|m|min|s|sec)|\b(?:asin|sin)\b|[$€£]?\d+(?:\.\d+)?%?/gi, (match) => {
+    if (/^(?:asin|sin)$/i.test(match)) {
+      return `<span class="trig">${match}</span>`;
+    }
     if (/^\d{1,2}:\d{2}(?:am|pm)?$/i.test(match) || /^\d+\s*(?:hr|h|m|min|s|sec)$/i.test(match)) {
       return `<span class="time">${match}</span>`;
     }
