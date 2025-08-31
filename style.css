@@ -321,7 +321,8 @@ body.light .window-btn:hover {
 .setting label { margin-right: 4px; }
 
 .setting select,
-.setting input {
+.setting input,
+.setting button {
   width: 100%;
   padding: 4px 8px;
   background: var(--settings-bg);
@@ -332,10 +333,12 @@ body.light .window-btn:hover {
   appearance: none;
   box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
   color-scheme: var(--color-scheme);
+  cursor: pointer;
 }
 
 .setting select:focus,
-.setting input:focus {
+.setting input:focus,
+.setting button:focus {
   outline: none;
   border-color: var(--answer-color);
 }

@@ -1,5 +1,6 @@
 const math = require('mathjs');
 const { ipcRenderer } = require('electron');
+const { convertCurrency, refreshRates } = require('./exchangeRates');
 
 let tabs = [{ name: 'Tab 1', lines: [''] }];
 let currentTab = 0;
@@ -56,6 +57,7 @@ const sizeSelect = document.getElementById('size-select');
 const fontSizeInput = document.getElementById('font-size');
 const versionEl = document.getElementById('version');
 const toast = document.getElementById('toast');
+const refreshBtn = document.getElementById('refresh-rates');
 
 function saveState() {
   const settings = {
@@ -113,7 +115,8 @@ minBtn.addEventListener('click', () => ipcRenderer.send('window:minimize'));
 maxBtn.addEventListener('click', () => ipcRenderer.send('window:maximize'));
 closeBtn.addEventListener('click', () => ipcRenderer.send('window:close'));
 
-const currencyMap = { '$': 'USD', '€': 'EUR', '£': 'GBP' };
+const currencyMap = { '$': 'USD', '€': 'EUR', '£': 'GBP', '¥': 'JPY', '₹': 'INR', '₩': 'KRW' };
+const codeToSymbol = Object.fromEntries(Object.entries(currencyMap).map(([s, c]) => [c, s]));
 
 function formatNumber(num, sym, decimals) {
   try {
@@ -207,7 +210,7 @@ function highlight(text, idx = 0) {
   }
   const safe = esc(text);
   const lastIdx = findLastIndex(idx);
-  return safe.replace(/\$[a-zA-Z_]\w*|""|\d{1,2}:\d{2}(?:am|pm)?|\d+\s*(?:hr|h|m|min|s|sec)|[$€£]?\d+(?:\.\d+)?%?/gi, (match) => {
+  return safe.replace(/\$[a-zA-Z_]\w*|""|\d{1,2}:\d{2}(?:am|pm)?|\d+\s*(?:hr|h|m|min|s|sec)|[$€£¥₹₩]?\d+(?:\.\d+)?%?/gi, (match) => {
     if (/^\d{1,2}:\d{2}(?:am|pm)?$/i.test(match) || /^\d+\s*(?:hr|h|m|min|s|sec)$/i.test(match)) {
       return `<span class="time">${match}</span>`;
     }
@@ -244,7 +247,20 @@ function compute(text, results, metas) {
   let exprText = assign ? assign[2] : text;
   let sym = null;
   let decimals;
-  exprText = exprText.replace(/([$€£])(?=\d)/g, m => { sym = sym || m; decimals = 2; return ''; });
+  const convMatch = exprText.trim().match(/^(\d+(?:\.\d+)?)\s*([A-Za-z]{3})\s+to\s+([A-Za-z]{3})$/i);
+  if (convMatch) {
+    const amount = Number(convMatch[1]);
+    const from = convMatch[2].toUpperCase();
+    const to = convMatch[3].toUpperCase();
+    const converted = convertCurrency(amount, from, to);
+    if (converted !== null) {
+      const csym = codeToSymbol[to] || null;
+      const display = formatNumber(converted, csym, 2);
+      return { display, value: converted, sym: csym, decimals: 2, assign: assign ? assign[1] : null, isTime: false, timeOfDay: false };
+    }
+    return { display: '', value: null, sym: null, decimals: undefined, assign: null, isTime: false, timeOfDay: false };
+  }
+  exprText = exprText.replace(/([$€£¥₹₩])(?=\d)/g, m => { sym = sym || m; decimals = 2; return ''; });
   let last = null;
   const timeState = { hasTime: false, hasTimeOfDay: false };
   for (let i = metas.length - 1; i >= 0; i--) {
@@ -435,7 +451,7 @@ function onInput(e) {
   const caret = getCaret(e.target);
   let raw = e.target.innerText.replace(/,/g, '');
   // constrain currency decimals without auto-appending values
-  raw = raw.replace(/([$€£])(\d+)(\.?)(\d*)/g, (_, sym, intp, dot, dec) => {
+  raw = raw.replace(/([$€£¥₹₩])(\d+)(\.?)(\d*)/g, (_, sym, intp, dot, dec) => {
     return sym + intp + (dot ? '.' + dec.slice(0, 2) : '');
   });
   tabs[currentTab].lines[index] = raw;
@@ -621,5 +637,15 @@ fontSizeInput.addEventListener('change', (e) => {
   saveState();
 });
 
+if (refreshBtn) {
+  refreshBtn.addEventListener('click', () => {
+    refreshRates().then(() => {
+      recalc();
+      showToast('Rates updated');
+    }).catch(() => showToast('Failed to update rates'));
+  });
+}
+
 renderTab();
+refreshRates().then(() => recalc());
 window.addEventListener('resize', updateDivider);
