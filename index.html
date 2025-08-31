@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Equals</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="app/icons/equals.png" />
+</head>
+<body>
+  <div id="titlebar">
+    <div id="logo" class="no-drag">＝</div>
+    <div id="tabs" class="no-drag">
+      <div id="tab-btn" class="tab-icon">+</div>
+      <div id="settings-btn" class="tab-icon">⚙</div>
+        <div id="tab-menu" class="hidden no-drag"></div>
+    </div>
+    <div id="window-controls" class="no-drag">
+      <div class="window-btn" id="min-btn">-</div>
+      <div class="window-btn" id="max-btn">&#9633;</div>
+      <div class="window-btn" id="close-btn">&#10005;</div>
+    </div>
+  </div>
+  <div id="container"></div>
+  <div id="settings" class="hidden no-drag">
+    <div class="setting">
+      <label for="theme-select">Theme:</label>
+      <select id="theme-select">
+        <option value="dark">Dark</option>
+        <option value="light">Light</option>
+        <option value="acrylic">Acrylic</option>
+      </select>
+    </div>
+    <div class="setting">
+      <label for="gradient-select">Gradient:</label>
+      <select id="gradient-select">
+        <option value="#bb87f8,#7aa2f7">Purple-Blue</option>
+        <option value="#7aa2f7,#ffb454">Blue-Orange</option>
+        <option value="#ff6bcb,#00d1b2">Pink-Teal</option>
+        <option value="#ff7b00,#ffee00">Red-Yellow</option>
+        <option value="#00d1b2,#0066ff">Teal-Blue</option>
+        <option value="#ff4e50,#1f1c2c">Coral-Indigo</option>
+        <option value="#56ab2f,#a8e063">Green-Lime</option>
+        <option value="#2E3192,#1BFFFF">Indigo-Cyan</option>
+        <option value="#c471ed,#f7797d">Purple-Pink</option>
+        <option value="#ff9a9e,#fad0c4">Rose-Pearl</option>
+        <option value="#a1c4fd,#c2e9fb">Sky-Cloud</option>
+        <option value="#fddb92,#d1fdff">Gold-Aqua</option>
+        <option value="#5433ff,#20bdff">Purple-Cyan</option>
+      </select>
+    </div>
+    <div class="setting">
+      <label for="size-select">Window Size:</label>
+      <select id="size-select">
+        <option value="250,250" selected>Small</option>
+        <option value="300,300">Medium</option>
+        <option value="400,400">Large</option>
+      </select>
+    </div>
+    <div class="setting">
+      <label for="font-size">Font Size:</label>
+      <input id="font-size" type="number" min="12" max="24" value="16" />
+    </div>
+    <div id="version" class="version"></div>
+  </div>
+  <div id="toast"></div>
+  <script src="renderer.js"></script>
+</body>
+</html>
