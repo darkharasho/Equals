@@ -28,6 +28,22 @@
     "files": [
       "**/*",
       "!dist/**"
-    ]
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "app/icons/equals.png"
+    },
+    "mac": {
+      "icon": "app/icons/equals.png"
+    },
+    "linux": {
+      "icon": "app/icons/equals.png",
+      "target": ["AppImage"]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "runAfterFinish": true
+    }
   }
 }

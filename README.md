@@ -15,6 +15,7 @@ A tiny Electron calculator that evaluates each line as you type. Expressions are
 ## Building
 1. Run `npm install`
 2. Create an installer with `npm run build`
+   - The installer lets you choose the install location, optionally launches the app when finished, and includes an uninstaller
 
 ## Contributing
 1. Fork and clone the repository
