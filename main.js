@@ -31,12 +31,25 @@ ipcMain.on('window:minimize', (e) => {
 
 ipcMain.on('theme', (e, theme) => {
   const win = BrowserWindow.fromWebContents(e.sender);
-  if (theme === 'acrylic') {
-    win.setBackgroundMaterial('acrylic');
-    nativeTheme.themeSource = 'dark';
+  if (process.platform === 'darwin') {
+    if (theme === 'vibrant-light') {
+      win.setVibrancy('light');
+      nativeTheme.themeSource = 'light';
+    } else if (theme === 'vibrant-dark') {
+      win.setVibrancy('ultra-dark');
+      nativeTheme.themeSource = 'dark';
+    } else {
+      win.setVibrancy(null);
+      nativeTheme.themeSource = theme === 'light' ? 'light' : 'dark';
+    }
   } else {
-    win.setBackgroundMaterial('mica');
-    nativeTheme.themeSource = theme === 'light' ? 'light' : 'dark';
+    if (theme === 'acrylic') {
+      win.setBackgroundMaterial('acrylic');
+      nativeTheme.themeSource = 'dark';
+    } else {
+      win.setBackgroundMaterial('mica');
+      nativeTheme.themeSource = theme === 'light' ? 'light' : 'dark';
+    }
   }
 });
 

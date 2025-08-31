@@ -52,6 +52,28 @@ body.light {
   background: transparent;
 }
 
+body.mac #window-controls {
+  display: none;
+}
+
+body.mac #logo {
+  order: 2;
+  margin-left: auto;
+  margin-right: 4px;
+}
+
+body.vibrant-dark {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  background: rgba(0,0,0,0.3);
+}
+
+body.vibrant-light {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  background: rgba(255,255,255,0.3);
+}
+
 #titlebar {
   height: 24px;
   display: flex;

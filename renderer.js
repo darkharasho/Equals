@@ -7,6 +7,7 @@ let lineResults = [];
 let lineMeta = [];
 let vars = {};
 let underlineEl = null;
+const isMac = process.platform === 'darwin';
 
 function getCaret(el) {
   const sel = window.getSelection();
@@ -57,6 +58,14 @@ const fontSizeInput = document.getElementById('font-size');
 const versionEl = document.getElementById('version');
 const toast = document.getElementById('toast');
 
+if (isMac) {
+  document.body.classList.add('mac');
+  const acrylicOpt = themeSelect.querySelector('option[value="acrylic"]');
+  if (acrylicOpt) acrylicOpt.remove();
+} else {
+  themeSelect.querySelectorAll('.mac-theme').forEach(o => o.remove());
+}
+
 function saveState() {
   const settings = {
     theme: themeSelect.value,
@@ -73,7 +82,9 @@ function loadState() {
     if (saved.tabs) tabs = saved.tabs;
     if (typeof saved.currentTab === 'number') currentTab = saved.currentTab;
     if (saved.settings) {
-      themeSelect.value = saved.settings.theme || 'dark';
+      const theme = saved.settings.theme || 'dark';
+      const opts = Array.from(themeSelect.options).map(o => o.value);
+      themeSelect.value = opts.includes(theme) ? theme : 'dark';
       gradientSelect.value = saved.settings.gradient || '#bb87f8,#7aa2f7';
       sizeSelect.value = (saved.settings.size && saved.settings.size.includes(',')) ? saved.settings.size : '250,250';
       fontSizeInput.value = saved.settings.fontSize || 16;
@@ -82,9 +93,11 @@ function loadState() {
 }
 
 function applyTheme(theme) {
-  document.body.classList.remove('light', 'dark');
-  if (theme === 'light') document.body.classList.add('light');
+  document.body.classList.remove('light', 'dark', 'vibrant-dark', 'vibrant-light');
+  if (theme === 'light' || theme === 'vibrant-light') document.body.classList.add('light');
   else document.body.classList.add('dark');
+  if (theme === 'vibrant-dark') document.body.classList.add('vibrant-dark');
+  if (theme === 'vibrant-light') document.body.classList.add('vibrant-light');
   ipcRenderer.send('theme', theme);
 }
 
@@ -279,9 +292,12 @@ function highlight(text, idx = 0) {
       const n = Number(num || 0);
       return `<span class="currency">${formatNumber(n, sym, decs)}</span>`;
     }
-    const decs = (match.split('.')[1] || '').length;
     const n = Number(match);
-    return `<span class="number">${formatNumber(n, null, decs)}</span>`;
+    if (!Number.isNaN(n)) {
+      const decs = (match.split('.')[1] || '').length;
+      return `<span class="number">${formatNumber(n, null, decs)}</span>`;
+    }
+    return match;
   });
 }
 
@@ -323,6 +339,12 @@ function compute(text, results, metas) {
   exprText = replaceUnitTokens(exprText);
   try {
     const res = math.evaluate(exprText);
+    if (typeof res === 'number' && !Number.isFinite(res)) {
+      return { display: '', value: null, sym: null, decimals: undefined, assign: assign ? assign[1] : null, isTime: false, timeOfDay: false };
+    }
+    if (res && res.isUnit && !Number.isFinite(res.value)) {
+      return { display: '', value: null, sym: null, decimals: undefined, assign: assign ? assign[1] : null, isTime: false, timeOfDay: false };
+    }
     if (res && res.isUnit) {
       const value = res.value;
       const unitLabel = res.formatUnits();
