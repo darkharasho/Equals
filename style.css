@@ -112,12 +112,57 @@ body.light {
 
 .res.underline { text-decoration: underline; }
 
-.number { color: var(--number-color); }
-.answer { color: var(--answer-color); }
-.percent { color: var(--percent-color); }
-.currency { color: var(--currency-color); }
-.variable { color: var(--var-color); }
-.last { color: var(--var-color); }
+.number,
+.answer,
+.percent,
+.currency,
+.variable,
+.last {
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+.number {
+  background-image: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--number-color) 70%, white),
+    var(--number-color)
+  );
+}
+
+.answer {
+  background-image: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--answer-color) 70%, white),
+    var(--answer-color)
+  );
+}
+
+.percent {
+  background-image: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--percent-color) 70%, white),
+    var(--percent-color)
+  );
+}
+
+.currency {
+  background-image: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--currency-color) 70%, white),
+    var(--currency-color)
+  );
+}
+
+.variable,
+.last {
+  background-image: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--var-color) 70%, white),
+    var(--var-color)
+  );
+}
 .comment { color: var(--comment-color); }
 
 #tabs {
