@@ -24,7 +24,7 @@ body {
   --currency-color: #bb87f8;
   --var-color: #c678dd;
   --comment-color: #6a9955;
-  --settings-bg: rgba(32,32,32,0.8);
+  --settings-bg: rgba(16,16,16,0.9);
   --settings-border: rgba(255,255,255,0.1);
   --divider-color: rgba(255,255,255,0.05);
   border-image: linear-gradient(135deg, var(--grad1), var(--grad2)) 1;

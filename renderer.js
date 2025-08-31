@@ -374,7 +374,10 @@ function onKey(e) {
       tabs[currentTab].lines.splice(index, 1);
       renderTab();
       const prev = container.querySelector(`.expr[data-index="${Math.max(index - 1, 0)}"]`);
-      if (prev) prev.focus();
+      if (prev) {
+        prev.focus();
+        setCaret(prev, prev.innerText.length);
+      }
     }
   } else if (e.key === 'ArrowUp') {
     e.preventDefault();
