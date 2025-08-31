@@ -175,6 +175,13 @@ function showToast(msg) {
   setTimeout(() => toast.classList.remove('show'), 1000);
 }
 
+function updateDivider() {
+  const firstRes = container.querySelector('.res');
+  if (firstRes) {
+    container.style.setProperty('--divider-left', firstRes.offsetLeft + 'px');
+  }
+}
+
 function renderTab() {
   container.innerHTML = '';
   const lines = tabs[currentTab].lines;
@@ -204,6 +211,7 @@ function renderTab() {
     line.appendChild(res);
     container.appendChild(line);
   });
+  updateDivider();
   saveState();
 }
 
@@ -354,7 +362,9 @@ sizeSelect.addEventListener('change', (e) => {
 fontSizeInput.addEventListener('change', (e) => {
   const size = Number(e.target.value) || 16;
   document.body.style.fontSize = size + 'px';
+  updateDivider();
   saveState();
 });
 
 renderTab();
+window.addEventListener('resize', updateDivider);
