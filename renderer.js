@@ -169,7 +169,7 @@ function compute(text, results) {
   if (!text.trim() || /^\s*#\s/.test(text)) return { display: '', value: null };
   const assign = text.match(/^\s*\$([a-zA-Z_]\w*)\s*=\s*(.+)$/);
   let exprText = assign ? assign[2] : text;
-  const currencyMatch = exprText.match(/[$€£]/);
+  const currencyMatch = exprText.match(/([$€£])(?=\d)/);
   const last = [...results].reverse().find(v => typeof v === 'number') ?? 0;
   let expr = exprText
     .replace(/""/g, last)
@@ -180,7 +180,7 @@ function compute(text, results) {
     .replace(/([0-9.]+)\s*([+\-])\s*([0-9.]+)%/g, (_, a, op, b) => `${a}${op}${a}*(${b}/100)`)
     .replace(/([0-9.]+)\s*([*/])\s*([0-9.]+)%/g, (_, a, op, b) => `${a}${op}(${b}/100)`)
     .replace(/(\d+(?:\.\d+)?)%/g, '($1/100)')
-    .replace(/[$€£]/g, '')
+    .replace(/([$€£])(?=\d)/g, '')
     .replace(/,/g, '');
   try {
     const res = math.evaluate(expr);
@@ -239,10 +239,6 @@ function renderTab() {
     line.className = 'line';
     line.dataset.index = index;
 
-    const num = document.createElement('span');
-    num.className = 'line-num';
-    num.textContent = index + 1;
-
     const expr = document.createElement('span');
     expr.className = 'expr';
     expr.contentEditable = true;
@@ -262,7 +258,6 @@ function renderTab() {
       showToast('Copied');
     });
 
-    line.appendChild(num);
     line.appendChild(expr);
     line.appendChild(res);
     container.appendChild(line);

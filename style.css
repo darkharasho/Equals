@@ -27,7 +27,6 @@ body {
   --settings-bg: rgba(0,0,0,0.6);
   --settings-border: rgba(255,255,255,0.2);
   --divider-color: rgba(255,255,255,0.05);
-  --linenum-bg: rgba(255,255,255,0.05);
   border-image: linear-gradient(135deg, var(--grad1), var(--grad2)) 1;
   border-radius: 16px;
   overflow: hidden;
@@ -44,7 +43,6 @@ body.light {
   --settings-bg: rgba(255,255,255,0.7);
   --settings-border: rgba(0,0,0,0.2);
   --divider-color: rgba(0,0,0,0.15);
-  --linenum-bg: rgba(0,0,0,0.05);
   background: transparent;
 }
 
@@ -88,18 +86,6 @@ body.light {
 .line {
   display: flex;
   align-items: flex-start;
-}
-
-.line-num {
-  width: 20px;
-  text-align: right;
-  margin-right: 4px;
-  padding: 0 4px;
-  background: var(--linenum-bg);
-  user-select: none;
-  color: var(--text-color);
-  opacity: 0.8;
-  flex-shrink: 0;
 }
 
 .expr {
@@ -161,17 +147,18 @@ body.light #settings-btn {
   position: absolute;
   top: 20px;
   right: 0;
-  background: rgba(0,0,0,0.6);
+  background: rgba(0,0,0,0.8);
   border: 1px solid rgba(255,255,255,0.2);
   border-radius: 4px;
-  min-width: 120px;
+  min-width: 140px;
   padding: 4px 0;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
+  z-index: 1000;
 }
 
 body.light #tab-menu {
-  background: rgba(255,255,255,0.9);
+  background: rgba(255,255,255,0.95);
   border: 1px solid rgba(0,0,0,0.2);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
@@ -191,6 +178,10 @@ body.light #tab-menu {
 
 body.light #tab-menu div:hover {
   background: rgba(0,0,0,0.1);
+}
+
+#tab-menu, #tab-menu * {
+  -webkit-app-region: no-drag;
 }
 
 .tab-name { flex: 1; }
