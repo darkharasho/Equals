@@ -6,7 +6,7 @@
   "scripts": {
     "start": "electron .",
     "test": "echo 'No tests specified'",
-    "build": "electron-builder --publish=never"
+    "build": "rimraf dist && electron-builder --publish=never"
   },
   "keywords": [],
   "author": "",
@@ -17,7 +17,8 @@
   },
   "devDependencies": {
     "electron": "^37.4.0",
-    "electron-builder": "^26.0.12"
+    "electron-builder": "^26.0.12",
+    "rimraf": "^6.0.1"
   },
   "build": {
     "appId": "com.equals.app",
@@ -38,7 +39,9 @@
     },
     "linux": {
       "icon": "app/icons/equals.png",
-      "target": ["AppImage"]
+      "target": [
+        "AppImage"
+      ]
     },
     "nsis": {
       "oneClick": false,
