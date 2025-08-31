@@ -54,6 +54,7 @@ const themeSelect = document.getElementById('theme-select');
 const gradientSelect = document.getElementById('gradient-select');
 const sizeSelect = document.getElementById('size-select');
 const fontSizeInput = document.getElementById('font-size');
+const angleModeSelect = document.getElementById('angle-mode');
 const versionEl = document.getElementById('version');
 const toast = document.getElementById('toast');
 
@@ -62,7 +63,8 @@ function saveState() {
     theme: themeSelect.value,
     gradient: gradientSelect.value,
     size: sizeSelect.value,
-    fontSize: fontSizeInput.value
+    fontSize: fontSizeInput.value,
+    angleMode: angleModeSelect.value
   };
   localStorage.setItem('equalsState', JSON.stringify({ tabs, currentTab, settings }));
 }
@@ -77,6 +79,7 @@ function loadState() {
       gradientSelect.value = saved.settings.gradient || '#bb87f8,#7aa2f7';
       sizeSelect.value = (saved.settings.size && saved.settings.size.includes(',')) ? saved.settings.size : '250,250';
       fontSizeInput.value = saved.settings.fontSize || 16;
+      angleModeSelect.value = saved.settings.angleMode || 'deg';
     }
   } catch {}
 }
@@ -114,6 +117,9 @@ maxBtn.addEventListener('click', () => ipcRenderer.send('window:maximize'));
 closeBtn.addEventListener('click', () => ipcRenderer.send('window:close'));
 
 const currencyMap = { '$': 'USD', '€': 'EUR', '£': 'GBP' };
+
+function deg2rad(deg) { return deg * Math.PI / 180; }
+function rad2deg(rad) { return rad * 180 / Math.PI; }
 
 function formatNumber(num, sym, decimals) {
   try {
@@ -207,7 +213,10 @@ function highlight(text, idx = 0) {
   }
   const safe = esc(text);
   const lastIdx = findLastIndex(idx);
-  return safe.replace(/\$[a-zA-Z_]\w*|""|\d{1,2}:\d{2}(?:am|pm)?|\d+\s*(?:hr|h|m|min|s|sec)|[$€£]?\d+(?:\.\d+)?%?/gi, (match) => {
+  return safe.replace(/\$[a-zA-Z_]\w*|""|\d{1,2}:\d{2}(?:am|pm)?|\d+\s*(?:hr|h|m|min|s|sec)|\b(?:asin|sin)\b|[$€£]?\d+(?:\.\d+)?%?/gi, (match) => {
+    if (/^(?:asin|sin)$/i.test(match)) {
+      return `<span class="trig">${match}</span>`;
+    }
     if (/^\d{1,2}:\d{2}(?:am|pm)?$/i.test(match) || /^\d+\s*(?:hr|h|m|min|s|sec)$/i.test(match)) {
       return `<span class="time">${match}</span>`;
     }
@@ -273,7 +282,20 @@ function compute(text, results, metas) {
     .replace(/(\d+(?:\.\d+)?)%/g, '($1/100)')
     .replace(/,/g, '');
   try {
-    const res = math.evaluate(exprText);
+    const useDeg = angleModeSelect.value === 'deg';
+    const scope = {};
+    if (useDeg) {
+      scope.sin = (x) => math.sin(deg2rad(x));
+      scope.cos = (x) => math.cos(deg2rad(x));
+      scope.tan = (x) => math.tan(deg2rad(x));
+      scope.csc = (x) => 1 / math.sin(deg2rad(x));
+      scope.sec = (x) => 1 / math.cos(deg2rad(x));
+      scope.cot = (x) => 1 / math.tan(deg2rad(x));
+      scope.asin = (x) => rad2deg(math.asin(x));
+      scope.acos = (x) => rad2deg(math.acos(x));
+      scope.atan = (x) => rad2deg(math.atan(x));
+    }
+    const res = math.evaluate(exprText, scope);
     if (typeof res === 'number') {
       if (timeState.hasTime) {
         if (timeState.hasTimeOfDay) {
@@ -618,6 +640,11 @@ fontSizeInput.addEventListener('change', (e) => {
   const size = Number(e.target.value) || 16;
   document.body.style.fontSize = size + 'px';
   updateDivider();
+  saveState();
+});
+
+angleModeSelect.addEventListener('change', () => {
+  recalc();
   saveState();
 });
 

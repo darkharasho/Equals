@@ -25,6 +25,7 @@ body {
   --var-color: #c678dd;
   --comment-color: #6a9955;
   --time-color: #e06c75;
+  --trig-color: #ff6bcb;
   --settings-bg: rgba(16,16,16,0.9);
   --settings-border: rgba(255,255,255,0.1);
   --divider-color: rgba(255,255,255,0.05);
@@ -43,6 +44,7 @@ body.light {
   --var-color: #8e44ad;
   --comment-color: #008000;
   --time-color: #d32f2f;
+  --trig-color: #d23669;
   --settings-bg: rgba(255,255,255,0.8);
   --settings-border: rgba(0,0,0,0.1);
   --divider-color: rgba(0,0,0,0.15);
@@ -198,6 +200,18 @@ body.light {
   caret-color: var(--text-color);
 }
 
+.trig {
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  background-image: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--trig-color) 70%, white),
+    var(--trig-color)
+  );
+  caret-color: var(--text-color);
+}
+
 #tabs {
   margin-right: 4px;
   margin-left: auto;
@@ -311,11 +325,34 @@ body.light .window-btn:hover {
   padding: 8px;
   height: calc(100% - 24px);
   overflow-y: auto;
+  scrollbar-width: thin;
   display: flex;
   flex-direction: column;
   gap: 8px;
   background: transparent;
   color: var(--text-color);
+  scrollbar-color: rgba(255,255,255,0.2) var(--settings-bg);
+}
+
+#settings::-webkit-scrollbar {
+  width: 6px;
+}
+
+#settings::-webkit-scrollbar-track {
+  background: var(--settings-bg);
+}
+
+#settings::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.2);
+  border-radius: 3px;
+}
+
+body.light #settings::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.2);
+}
+
+body.light #settings {
+  scrollbar-color: rgba(0,0,0,0.2) var(--settings-bg);
 }
 
 .setting label { margin-right: 4px; }
@@ -343,6 +380,10 @@ body.light .window-btn:hover {
 .setting select option {
   background: var(--settings-bg);
   color: var(--text-color);
+}
+
+#angle-mode {
+  width: 100%;
 }
 
 .version {
