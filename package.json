@@ -6,7 +6,8 @@
   "scripts": {
     "start": "electron .",
     "test": "echo 'No tests specified'",
-    "build": "rimraf dist && electron-builder --publish=never"
+    "prebuild": "node scripts/clean-dist.js",
+    "build": "electron-builder --publish=never"
   },
   "keywords": [],
   "author": "",
