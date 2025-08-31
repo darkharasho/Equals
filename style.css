@@ -24,7 +24,7 @@ body {
   --currency-color: #bb87f8;
   --var-color: #c678dd;
   --comment-color: #6a9955;
-  --settings-bg: rgba(0,0,0,0.6);
+  --settings-bg: rgba(0,0,0,0.3);
   --settings-border: rgba(255,255,255,0.2);
   --divider-color: rgba(255,255,255,0.05);
   border-image: linear-gradient(135deg, var(--grad1), var(--grad2)) 1;
@@ -40,7 +40,7 @@ body.light {
   --currency-color: #6a1b9a;
   --var-color: #8e44ad;
   --comment-color: #008000;
-  --settings-bg: rgba(255,255,255,0.7);
+  --settings-bg: rgba(255,255,255,0.5);
   --settings-border: rgba(0,0,0,0.2);
   --divider-color: rgba(0,0,0,0.15);
   background: transparent;
@@ -98,7 +98,7 @@ body.light {
 .res {
   min-width: 40px;
   margin-left: 4px;
-  padding-left: 4px;
+  padding-left: 8px;
   text-align: right;
   flex-shrink: 0;
   max-width: 40%;
@@ -107,6 +107,8 @@ body.light {
   text-overflow: ellipsis;
   cursor: pointer;
 }
+
+.res.underline { text-decoration: underline; }
 
 .number { color: var(--number-color); }
 .answer { color: var(--answer-color); }
@@ -232,7 +234,7 @@ body.light .window-btn:hover {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  background: var(--settings-bg);
+  background: transparent;
   color: var(--text-color);
 }
 

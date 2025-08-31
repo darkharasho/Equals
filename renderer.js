@@ -5,7 +5,9 @@ let tabs = [{ name: 'Tab 1', lines: [''] }];
 let currentTab = 0;
 let lastKey = '';
 let lineResults = [];
+let lineMeta = [];
 let vars = {};
+let underlineEl = null;
 
 function getCaret(el) {
   const sel = window.getSelection();
@@ -134,17 +136,28 @@ function esc(str) {
   return str.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
 }
 
-function highlight(text) {
+function findLastIndex(idx) {
+  for (let i = idx - 1; i >= 0; i--) {
+    const m = lineMeta[i];
+    if (m && typeof m.value === 'number') return i;
+  }
+  return -1;
+}
+
+function highlight(text, idx = 0) {
   if (/^\s*#\s/.test(text)) {
     return `<span class="comment">${esc(text)}</span>`;
   }
   const safe = esc(text);
+  const lastIdx = findLastIndex(idx);
   return safe.replace(/\$[a-zA-Z_]\w*|""|[$€£]?\d+(?:\.\d+)?%?/g, (match) => {
     if (match === '""') {
-      return '<span class="last">""</span>';
+      return `<span class="last" data-ref="${lastIdx}">""</span>`;
     }
     if (match.startsWith('$') && isNaN(match[1])) {
-      return `<span class="variable">${match}</span>`;
+      const name = match.slice(1);
+      const ref = vars[name] ? vars[name].line : '';
+      return `<span class="variable" data-ref="${ref}">${match}</span>`;
     }
     if (match.endsWith('%')) {
       const num = match.slice(0, -1);
@@ -165,48 +178,67 @@ function highlight(text) {
   });
 }
 
-function compute(text, results) {
-  if (!text.trim() || /^\s*#\s/.test(text)) return { display: '', value: null };
+function compute(text, results, metas) {
+  if (!text.trim() || /^\s*#\s/.test(text)) return { display: '', value: null, sym: null, decimals: undefined, assign: null };
   const assign = text.match(/^\s*\$([a-zA-Z_]\w*)\s*=\s*(.+)$/);
   let exprText = assign ? assign[2] : text;
-  const currencyMatch = exprText.match(/([$€£])(?=\d)/);
-  const last = [...results].reverse().find(v => typeof v === 'number') ?? 0;
-  let expr = exprText
-    .replace(/""/g, last)
+  let sym = null;
+  let decimals;
+  exprText = exprText.replace(/([$€£])(?=\d)/g, m => { sym = sym || m; decimals = 2; return ''; });
+  let lastMeta = { idx: -1, meta: null };
+  for (let i = metas.length - 1; i >= 0; i--) {
+    const m = metas[i];
+    if (m && typeof m.value === 'number') { lastMeta = { idx: i, meta: m }; break; }
+  }
+  exprText = exprText
+    .replace(/""/g, () => {
+      if (!sym && lastMeta.meta && lastMeta.meta.sym) { sym = lastMeta.meta.sym; decimals = lastMeta.meta.decimals; }
+      return lastMeta.meta ? lastMeta.meta.value : 0;
+    })
     .replace(/\$([a-zA-Z_]\w*)/g, (_, n) => {
       const v = vars[n];
-      return typeof v === 'number' ? v : 0;
+      if (v) {
+        if (!sym && v.sym) { sym = v.sym; decimals = v.decimals; }
+        return v.value;
+      }
+      return 0;
     })
     .replace(/([0-9.]+)\s*([+\-])\s*([0-9.]+)%/g, (_, a, op, b) => `${a}${op}${a}*(${b}/100)`)
     .replace(/([0-9.]+)\s*([*/])\s*([0-9.]+)%/g, (_, a, op, b) => `${a}${op}(${b}/100)`)
     .replace(/(\d+(?:\.\d+)?)%/g, '($1/100)')
-    .replace(/([$€£])(?=\d)/g, '')
     .replace(/,/g, '');
   try {
-    const res = math.evaluate(expr);
+    const res = math.evaluate(exprText);
     if (typeof res === 'number') {
-      if (assign) vars[assign[1]] = res;
-      const display = formatNumber(res, currencyMatch ? currencyMatch[0] : null, currencyMatch ? 2 : undefined);
-      return { display, value: res };
+      const display = formatNumber(res, sym, sym ? 2 : decimals);
+      return { display, value: res, sym, decimals: sym ? 2 : decimals, assign: assign ? assign[1] : null, lastIndex: lastMeta.idx };
     }
-    return { display: '', value: null };
+    return { display: '', value: null, sym: null, decimals: undefined, assign: null, lastIndex: lastMeta.idx };
   } catch {
-    return { display: '', value: null };
+    return { display: '', value: null, sym: null, decimals: undefined, assign: null, lastIndex: lastMeta.idx };
   }
 }
 
 function recalc() {
   const lines = tabs[currentTab].lines;
   lineResults = [];
+  lineMeta = [];
   vars = {};
   lines.forEach((text, idx) => {
-    const { display, value } = compute(text, lineResults);
+    const { display, value, sym, decimals, assign } = compute(text, lineResults, lineMeta);
     const resEl = container.querySelector(`.res[data-index="${idx}"]`);
+    const exprEl = container.querySelector(`.expr[data-index="${idx}"]`);
     if (resEl) {
       resEl.textContent = display;
       resEl.dataset.full = display;
     }
+    if (exprEl) {
+      exprEl.innerHTML = highlight(text, idx);
+      attachRefEvents(exprEl);
+    }
     lineResults.push(value);
+    lineMeta.push({ value, sym, decimals, display });
+    if (assign) vars[assign] = { value, sym, decimals, display, line: idx };
   });
   updateDivider();
   saveState();
@@ -229,28 +261,74 @@ function updateDivider() {
   }
 }
 
+function underlineResult(idx) {
+  clearUnderline();
+  const res = container.querySelector(`.res[data-index="${idx}"]`);
+  if (res) {
+    res.classList.add('underline');
+    underlineEl = res;
+  }
+}
+
+function clearUnderline() {
+  if (underlineEl) {
+    underlineEl.classList.remove('underline');
+    underlineEl = null;
+  }
+}
+
+function attachRefEvents(expr) {
+  expr.querySelectorAll('.variable, .last').forEach(span => {
+    span.addEventListener('mouseenter', () => {
+      const ref = span.dataset.ref;
+      if (ref !== '' && ref !== '-1') underlineResult(ref);
+    });
+    span.addEventListener('mouseleave', clearUnderline);
+  });
+}
+
+document.addEventListener('selectionchange', () => {
+  const sel = document.getSelection();
+  if (!sel.rangeCount) { clearUnderline(); return; }
+  const node = sel.anchorNode;
+  let el = node ? (node.nodeType === 3 ? node.parentElement : node) : null;
+  el = el ? el.closest('.variable, .last') : null;
+  if (el && sel.isCollapsed) {
+    const ref = el.dataset.ref;
+    if (ref !== '' && ref !== '-1') underlineResult(ref);
+  } else {
+    clearUnderline();
+  }
+});
+
 function renderTab() {
   container.innerHTML = '';
   const lines = tabs[currentTab].lines;
   lineResults = [];
+  lineMeta = [];
   vars = {};
   lines.forEach((text, index) => {
+    const { display, value, sym, decimals, assign } = compute(text, lineResults, lineMeta);
+    lineResults.push(value);
+    lineMeta.push({ value, sym, decimals, display });
+    if (assign) vars[assign] = { value, sym, decimals, display, line: index };
+
     const line = document.createElement('div');
     line.className = 'line';
     line.dataset.index = index;
 
     const expr = document.createElement('span');
     expr.className = 'expr';
-    expr.contentEditable = true;
     expr.dataset.index = index;
-    expr.innerHTML = highlight(text);
+    expr.innerHTML = highlight(text, index);
     expr.addEventListener('input', onInput);
     expr.addEventListener('keydown', onKey);
+    attachRefEvents(expr);
 
     const res = document.createElement('span');
     res.className = 'res answer';
     res.dataset.index = index;
-    const { display, value } = compute(text, lineResults);
+    res.contentEditable = false;
     res.textContent = display;
     res.dataset.full = display;
     res.addEventListener('click', () => {
@@ -261,14 +339,13 @@ function renderTab() {
     line.appendChild(expr);
     line.appendChild(res);
     container.appendChild(line);
-    lineResults.push(value);
   });
   updateDivider();
   saveState();
 }
 
 function onInput(e) {
-  const index = Number(e.target.dataset.index);
+  let index = Number(e.target.dataset.index);
   const caret = getCaret(e.target);
   let raw = e.target.innerText.replace(/,/g, '');
   if (lastKey && (lastKey === ' ' || '+-*/'.includes(lastKey))) {
@@ -282,9 +359,17 @@ function onInput(e) {
   });
   lastKey = '';
   tabs[currentTab].lines[index] = raw;
-  e.target.innerHTML = highlight(raw);
+  e.target.innerHTML = highlight(raw, index);
+  attachRefEvents(e.target);
   setCaret(e.target, caret);
+  // sync lines in case of multi-line edits
+  const exprs = Array.from(container.querySelectorAll('.expr'));
+  tabs[currentTab].lines = exprs.map(el => el.innerText.replace(/,/g, ''));
+  exprs.forEach((el, i) => el.dataset.index = i);
+  container.querySelectorAll('.res').forEach((el, i) => el.dataset.index = i);
   recalc();
+  const newTarget = container.querySelector(`.expr[data-index="${Math.min(index, tabs[currentTab].lines.length - 1)}"]`);
+  if (newTarget) setCaret(newTarget, caret);
 }
 
 function onKey(e) {
@@ -303,6 +388,22 @@ function onKey(e) {
       renderTab();
       const prev = container.querySelector(`.expr[data-index="${Math.max(index - 1, 0)}"]`);
       if (prev) prev.focus();
+    }
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    const prev = container.querySelector(`.expr[data-index="${index - 1}"]`);
+    if (prev) {
+      const pos = Math.min(getCaret(e.target), prev.innerText.length);
+      prev.focus();
+      setCaret(prev, pos);
+    }
+  } else if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    const next = container.querySelector(`.expr[data-index="${index + 1}"]`);
+    if (next) {
+      const pos = Math.min(getCaret(e.target), next.innerText.length);
+      next.focus();
+      setCaret(next, pos);
     }
   }
   saveState();
@@ -387,6 +488,7 @@ document.addEventListener('click', (e) => {
 settingsBtn.addEventListener('click', () => {
   const showing = !settingsView.classList.toggle('hidden');
   container.classList.toggle('hidden', showing);
+  if (!showing) updateDivider();
 });
 
 themeSelect.addEventListener('change', (e) => {
@@ -405,6 +507,7 @@ sizeSelect.addEventListener('change', (e) => {
   const [w, h] = e.target.value.split(',').map(Number);
   if (Number.isFinite(w) && Number.isFinite(h)) {
     ipcRenderer.send('window:resize', { width: w, height: h });
+    setTimeout(updateDivider, 100);
   }
   saveState();
 });
