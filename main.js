@@ -31,20 +31,16 @@ ipcMain.on('window:minimize', (e) => {
 
 ipcMain.on('theme', (e, theme) => {
   const win = BrowserWindow.fromWebContents(e.sender);
-  const isLight = theme === 'light' || theme === 'vibrant-light';
+  const isLight = theme === 'light';
   if (process.platform === 'darwin') {
-    if (theme === 'vibrant-light') {
-      win.setVibrancy('light');
-      win.setBackgroundColor('#00000000');
-      nativeTheme.themeSource = 'light';
-    } else if (theme === 'vibrant-dark') {
+    if (theme === 'dark') {
       win.setVibrancy('ultra-dark');
       win.setBackgroundColor('#00000000');
       nativeTheme.themeSource = 'dark';
     } else {
       win.setVibrancy(null);
-      win.setBackgroundColor(isLight ? '#ffffffff' : '#000000ff');
-      nativeTheme.themeSource = isLight ? 'light' : 'dark';
+      win.setBackgroundColor('#ffffffff');
+      nativeTheme.themeSource = 'light';
     }
   } else {
     if (theme === 'acrylic') {

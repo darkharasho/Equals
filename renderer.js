@@ -62,8 +62,6 @@ if (isMac) {
   document.body.classList.add('mac');
   const acrylicOpt = themeSelect.querySelector('option[value="acrylic"]');
   if (acrylicOpt) acrylicOpt.remove();
-} else {
-  themeSelect.querySelectorAll('.mac-theme').forEach(o => o.remove());
 }
 
 function saveState() {
@@ -93,11 +91,9 @@ function loadState() {
 }
 
 function applyTheme(theme) {
-  document.body.classList.remove('light', 'dark', 'vibrant-dark', 'vibrant-light');
-  if (theme === 'light' || theme === 'vibrant-light') document.body.classList.add('light');
+  document.body.classList.remove('light', 'dark');
+  if (theme === 'light') document.body.classList.add('light');
   else document.body.classList.add('dark');
-  if (theme === 'vibrant-dark') document.body.classList.add('vibrant-dark');
-  if (theme === 'vibrant-light') document.body.classList.add('vibrant-light');
   ipcRenderer.send('theme', theme);
 }
 
