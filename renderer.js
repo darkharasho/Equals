@@ -57,11 +57,6 @@ const fontSizeInput = document.getElementById('font-size');
 const versionEl = document.getElementById('version');
 const toast = document.getElementById('toast');
 
-function updateGradientPreview() {
-  const [c1, c2] = gradientSelect.value.split(',');
-  gradientSelect.style.background = `linear-gradient(90deg, ${c1}, ${c2})`;
-}
-
 function saveState() {
   const settings = {
     theme: themeSelect.value,
@@ -98,7 +93,7 @@ function applySettings() {
   const [c1, c2] = gradientSelect.value.split(',');
   document.body.style.setProperty('--grad1', c1);
   document.body.style.setProperty('--grad2', c2);
-  updateGradientPreview();
+  gradientSelect.style.background = '';
   const [w, h] = sizeSelect.value.split(',').map(Number);
   if (Number.isFinite(w) && Number.isFinite(h)) {
     ipcRenderer.send('window:resize', { width: w, height: h });
@@ -496,7 +491,7 @@ gradientSelect.addEventListener('change', (e) => {
   const [c1, c2] = e.target.value.split(',');
   document.body.style.setProperty('--grad1', c1);
   document.body.style.setProperty('--grad2', c2);
-  updateGradientPreview();
+  gradientSelect.style.background = '';
   saveState();
 });
 
