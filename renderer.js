@@ -189,6 +189,34 @@ function replaceTimeTokens(expr, state) {
     });
 }
 
+function normalizeUnitName(unit) {
+  const lower = unit.toLowerCase();
+  if (lower === 'f') return 'degF';
+  if (lower === 'c') return 'degC';
+  return unit;
+}
+
+function replaceUnitTokens(expr) {
+  const timeUnits = ['hr', 'h', 'm', 'min', 's', 'sec'];
+  expr = expr.replace(/\b([a-zA-Z]+)\b/g, (match, unit) => {
+    const lower = unit.toLowerCase();
+    if (timeUnits.includes(lower)) return match;
+    const norm = normalizeUnitName(unit);
+    if (math.Unit.isValuelessUnit(norm)) return norm;
+    return match;
+  });
+  expr = expr.replace(/(\d+(?:\.\d+)?)([a-zA-Z]+)/g, (match, num, unit) => {
+    const lower = unit.toLowerCase();
+    if (timeUnits.includes(lower)) return match;
+    const norm = normalizeUnitName(unit);
+    if (math.Unit.isValuelessUnit(norm)) {
+      return `unit(${num}, "${norm}")`;
+    }
+    return match;
+  });
+  return expr;
+}
+
 function esc(str) {
   return str.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
 }
@@ -207,7 +235,7 @@ function highlight(text, idx = 0) {
   }
   const safe = esc(text);
   const lastIdx = findLastIndex(idx);
-  return safe.replace(/\$[a-zA-Z_]\w*|""|\d{1,2}:\d{2}(?:am|pm)?|\d+\s*(?:hr|h|m|min|s|sec)|[$€£]?\d+(?:\.\d+)?%?/gi, (match) => {
+  return safe.replace(/\$[a-zA-Z_]\w*|""|\d{1,2}:\d{2}(?:am|pm)?|\d+\s*(?:hr|h|m|min|s|sec)|\d+(?:\.\d+)?[a-zA-Z]+|\b[a-zA-Z]+\b|[$€£]?\d+(?:\.\d+)?%?/gi, (match) => {
     if (/^\d{1,2}:\d{2}(?:am|pm)?$/i.test(match) || /^\d+\s*(?:hr|h|m|min|s|sec)$/i.test(match)) {
       return `<span class="time">${match}</span>`;
     }
@@ -218,6 +246,25 @@ function highlight(text, idx = 0) {
       const name = match.slice(1);
       const ref = vars[name] ? vars[name].line : '';
       return `<span class="variable" data-ref="${ref}">${match}</span>`;
+    }
+    if (/^\d+(?:\.\d+)?[a-zA-Z]+$/.test(match)) {
+      const m = match.match(/^(\d+(?:\.\d+)?)([a-zA-Z]+)$/);
+      const num = m[1];
+      const unit = m[2];
+      const lower = unit.toLowerCase();
+      const norm = normalizeUnitName(unit);
+      if (!['hr','h','m','min','s','sec'].includes(lower) && math.Unit.isValuelessUnit(norm)) {
+        const decs = (num.split('.')[1] || '').length;
+        const n = Number(num);
+        return `<span class="number">${formatNumber(n, null, decs)}</span><span class="unit">${unit}</span>`;
+      }
+    }
+    if (/^[a-zA-Z]+$/.test(match)) {
+      const lower = match.toLowerCase();
+      const norm = normalizeUnitName(match);
+      if (!['hr','h','m','min','s','sec'].includes(lower) && math.Unit.isValuelessUnit(norm)) {
+        return `<span class="unit">${match}</span>`;
+      }
     }
     if (match.endsWith('%')) {
       const num = match.slice(0, -1);
@@ -265,15 +312,24 @@ function compute(text, results, metas) {
         return v.value;
       }
       return 0;
-    });
+    })
+    .replace(/,/g, '');
 
   exprText = replaceTimeTokens(exprText, timeState)
     .replace(/([0-9.]+)\s*([+\-])\s*([0-9.]+)%/g, (_, a, op, b) => `${a}${op}${a}*(${b}/100)`)
     .replace(/([0-9.]+)\s*([*/])\s*([0-9.]+)%/g, (_, a, op, b) => `${a}${op}(${b}/100)`)
-    .replace(/(\d+(?:\.\d+)?)%/g, '($1/100)')
-    .replace(/,/g, '');
+    .replace(/(\d+(?:\.\d+)?)%/g, '($1/100)');
+
+  exprText = replaceUnitTokens(exprText);
   try {
     const res = math.evaluate(exprText);
+    if (res && res.isUnit) {
+      const value = res.value;
+      const unitLabel = res.formatUnits();
+      const decs = (String(value).split('.')[1] || '').length;
+      const display = `${formatNumber(value, null, decs)} ${unitLabel}`;
+      return { display, value: res, sym: null, decimals: decs, assign: assign ? assign[1] : null, isTime: false, timeOfDay: false };
+    }
     if (typeof res === 'number') {
       if (timeState.hasTime) {
         if (timeState.hasTimeOfDay) {

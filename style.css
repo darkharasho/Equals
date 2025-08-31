@@ -25,6 +25,7 @@ body {
   --var-color: #c678dd;
   --comment-color: #6a9955;
   --time-color: #e06c75;
+  --unit-color: #98c379;
   --settings-bg: rgba(16,16,16,0.9);
   --settings-border: rgba(255,255,255,0.1);
   --divider-color: rgba(255,255,255,0.05);
@@ -43,6 +44,7 @@ body.light {
   --var-color: #8e44ad;
   --comment-color: #008000;
   --time-color: #d32f2f;
+  --unit-color: #2e7d32;
   --settings-bg: rgba(255,255,255,0.8);
   --settings-border: rgba(0,0,0,0.1);
   --divider-color: rgba(0,0,0,0.15);
@@ -130,7 +132,8 @@ body.light {
 .currency,
 .variable,
 .time,
-.last {
+.last,
+.unit {
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
@@ -166,6 +169,14 @@ body.light {
     135deg,
     color-mix(in srgb, var(--currency-color) 70%, white),
     var(--currency-color)
+  );
+}
+
+.unit {
+  background-image: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--unit-color) 70%, white),
+    var(--unit-color)
   );
 }
 
