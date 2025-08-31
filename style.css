@@ -33,7 +33,7 @@ body.light {
   --answer-color: #b35a00;
   --percent-color: #137333;
   --currency-color: #6a1b9a;
-  background: rgba(255,255,255,0.6);
+  background: transparent;
 }
 
 #titlebar {

@@ -36,7 +36,7 @@ function loadState() {
     if (saved.settings) {
       themeSelect.value = saved.settings.theme || 'dark';
       gradientSelect.value = saved.settings.gradient || '#bb87f8,#7aa2f7';
-      sizeSelect.value = saved.settings.size || '300,300';
+      sizeSelect.value = saved.settings.size || '216,216';
       fontSizeInput.value = saved.settings.fontSize || 16;
     }
   } catch {}
@@ -69,17 +69,18 @@ closeBtn.addEventListener('click', () => ipcRenderer.send('window:close'));
 
 const currencyMap = { '$': 'USD', '€': 'EUR', '£': 'GBP' };
 
-function formatNumber(num, sym, force = true) {
+function formatNumber(num, sym, decimals) {
   try {
+    const options = {};
     if (sym && currencyMap[sym]) {
-      return new Intl.NumberFormat(undefined, {
-        style: 'currency',
-        currency: currencyMap[sym],
-        minimumFractionDigits: force ? 2 : 0,
-        maximumFractionDigits: force ? 2 : 0
-      }).format(num);
+      options.style = 'currency';
+      options.currency = currencyMap[sym];
     }
-    return new Intl.NumberFormat().format(num);
+    if (typeof decimals === 'number') {
+      options.minimumFractionDigits = decimals;
+      options.maximumFractionDigits = decimals;
+    }
+    return new Intl.NumberFormat(undefined, options).format(num);
   } catch {
     return num.toString();
   }
@@ -88,17 +89,21 @@ function formatNumber(num, sym, force = true) {
 function highlight(text) {
   return text.replace(/([$€£]?\d+(?:\.\d+)?%?)/g, (match) => {
     if (match.endsWith('%')) {
-      const n = Number(match.slice(0, -1));
-      return `<span class="percent">${formatNumber(n)}%</span>`;
+      const num = match.slice(0, -1);
+      const decs = (num.split('.')[1] || '').length;
+      const n = Number(num);
+      return `<span class="percent">${formatNumber(n, null, decs)}%</span>`;
     }
     const sym = match[0];
     if (currencyMap[sym]) {
-      const hasDec = match.includes('.');
-      const n = Number(match.slice(1));
-      return `<span class="currency">${formatNumber(n, sym, hasDec)}</span>`;
+      const num = match.slice(1);
+      const decs = (num.split('.')[1] || '').length;
+      const n = Number(num || 0);
+      return `<span class="currency">${formatNumber(n, sym, decs)}</span>`;
     }
+    const decs = (match.split('.')[1] || '').length;
     const n = Number(match);
-    return `<span class="number">${formatNumber(n)}</span>`;
+    return `<span class="number">${formatNumber(n, null, decs)}</span>`;
   });
 }
 
@@ -112,7 +117,7 @@ function compute(text) {
   try {
     const res = math.evaluate(expr);
     if (typeof res === 'number') {
-      return formatNumber(res, currencyMatch ? currencyMatch[0] : null);
+      return formatNumber(res, currencyMatch ? currencyMatch[0] : null, currencyMatch ? 2 : undefined);
     }
     return '';
   } catch {
@@ -155,16 +160,13 @@ function onInput(e) {
   const index = Number(e.target.dataset.index);
   let raw = e.target.innerText.replace(/,/g, '');
   if (lastKey && (lastKey === ' ' || '+-*/'.includes(lastKey))) {
-    raw = raw.replace(/([$€£]\d+)(?!\.\d)/g, '$1.00');
+    raw = raw.replace(/([$€£])(\d+)(?:\.(\d{0,2}))?/g, (_, sym, intp, dec = '') => {
+      dec = (dec + '00').slice(0, 2);
+      return sym + intp + '.' + dec;
+    });
   }
-  raw = raw.replace(/([$€£])(\d+)(?:\.(\d{2}))?(\d*)/g, (_, sym, intp, dec = '', extra = '') => {
-    if (dec === '00' && extra) {
-      intp += extra;
-      dec = '';
-    } else {
-      dec += extra;
-    }
-    return sym + intp + (dec ? '.' + dec : '');
+  raw = raw.replace(/([$€£])(\d+)(?:\.(\d*))?/g, (_, sym, intp, dec = '') => {
+    return sym + intp + (dec ? '.' + dec.slice(0, 2) : '');
   });
   lastKey = '';
   tabs[currentTab].lines[index] = raw;
