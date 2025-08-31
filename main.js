@@ -12,6 +12,7 @@ function createWindow() {
     titleBarStyle: 'hidden',
     backgroundMaterial: 'mica',
     backgroundColor: '#00000000',
+    icon: path.join(__dirname, 'app/icons/equals.png'),
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false

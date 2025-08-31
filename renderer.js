@@ -1,7 +1,7 @@
 const math = require('mathjs');
 const { ipcRenderer } = require('electron');
 
-let tabs = [{ lines: [''] }];
+let tabs = [{ name: 'Tab 1', lines: [''] }];
 let currentTab = 0;
 
 const container = document.getElementById('container');
@@ -15,21 +15,49 @@ minBtn.addEventListener('click', () => ipcRenderer.send('window:minimize'));
 maxBtn.addEventListener('click', () => ipcRenderer.send('window:maximize'));
 closeBtn.addEventListener('click', () => ipcRenderer.send('window:close'));
 
+const currencyMap = { '$': 'USD', '€': 'EUR', '£': 'GBP' };
+
+function formatNumber(num, sym) {
+  try {
+    if (sym && currencyMap[sym]) {
+      return new Intl.NumberFormat(undefined, { style: 'currency', currency: currencyMap[sym] }).format(num);
+    }
+    return new Intl.NumberFormat().format(num);
+  } catch {
+    return num.toString();
+  }
+}
+
 function highlight(text) {
-  return text
-    .replace(/(\d+(?:\.\d+)?%)/g, '<span class="percent">$1</span>')
-    .replace(/([$€£]\s*\d+(?:\.\d+)?)/g, '<span class="currency">$1</span>')
-    .replace(/(\d+(?:\.\d+)?)/g, '<span class="number">$1</span>');
+  return text.replace(/([$€£]?\d+(?:\.\d+)?%?)/g, (match) => {
+    if (match.endsWith('%')) {
+      const n = Number(match.slice(0, -1));
+      return `<span class="percent">${formatNumber(n)}%</span>`;
+    }
+    const sym = match[0];
+    if (currencyMap[sym]) {
+      const n = Number(match.slice(1));
+      return `<span class="currency">${formatNumber(n, sym)}</span>`;
+    }
+    const n = Number(match);
+    return `<span class="number">${formatNumber(n)}</span>`;
+  });
 }
 
 function compute(text) {
   if (!text.trim()) return '';
-  let expr = text.replace(/(\d+(?:\.\d+)?)%/g, '($1/100)')
-                 .replace(/[$€£]/g, '');
+  const currencyMatch = text.match(/[$€£]/);
+  let expr = text
+    .replace(/(\d+(?:\.\d+)?)%/g, '($1/100)')
+    .replace(/[$€£]/g, '')
+    .replace(/,/g, '');
   try {
     const res = math.evaluate(expr);
-    return typeof res === 'number' ? res.toString() : '';
-  } catch (e) {
+    if (typeof res === 'number') {
+      return formatNumber(res, currencyMatch ? currencyMatch[0] : null);
+    }
+    return '';
+  } catch {
     return '';
   }
 }
@@ -51,7 +79,12 @@ function renderTab() {
 
     const res = document.createElement('span');
     res.className = 'res answer';
-    res.textContent = compute(text);
+    const result = compute(text);
+    res.textContent = result;
+    res.dataset.full = result;
+    res.addEventListener('click', () => {
+      navigator.clipboard.writeText(res.dataset.full || '');
+    });
 
     line.appendChild(expr);
     line.appendChild(res);
@@ -61,11 +94,14 @@ function renderTab() {
 
 function onInput(e) {
   const index = Number(e.target.dataset.index);
-  const text = e.target.innerText;
-  tabs[currentTab].lines[index] = text;
-  e.target.innerHTML = highlight(text);
+  const raw = e.target.innerText.replace(/,/g, '');
+  tabs[currentTab].lines[index] = raw;
+  e.target.innerHTML = highlight(raw);
   placeCaretAtEnd(e.target);
-  e.target.parentNode.querySelector('.res').textContent = compute(text);
+  const result = compute(raw);
+  const res = e.target.parentNode.querySelector('.res');
+  res.textContent = result;
+  res.dataset.full = result;
 }
 
 function onKey(e) {
@@ -98,18 +134,44 @@ function renderTabMenu() {
   tabMenu.innerHTML = '';
   tabs.forEach((t, idx) => {
     const item = document.createElement('div');
-    item.textContent = `Tab ${idx + 1}`;
-    item.addEventListener('click', () => {
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'tab-name';
+    nameSpan.textContent = t.name || `Tab ${idx + 1}`;
+    nameSpan.addEventListener('click', () => {
       currentTab = idx;
       tabMenu.classList.add('hidden');
       renderTab();
     });
+    const edit = document.createElement('span');
+    edit.className = 'tab-edit';
+    edit.textContent = '✎';
+    edit.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const newName = prompt('Tab name', t.name || `Tab ${idx + 1}`);
+      if (newName) t.name = newName;
+      renderTabMenu();
+    });
+    const del = document.createElement('span');
+    del.className = 'tab-delete';
+    del.textContent = '×';
+    del.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (tabs.length > 1) {
+        tabs.splice(idx, 1);
+        if (currentTab >= tabs.length) currentTab = tabs.length - 1;
+        renderTab();
+        renderTabMenu();
+      }
+    });
+    item.appendChild(nameSpan);
+    item.appendChild(edit);
+    item.appendChild(del);
     tabMenu.appendChild(item);
   });
   const newItem = document.createElement('div');
   newItem.textContent = 'New Tab';
   newItem.addEventListener('click', () => {
-    tabs.push({ lines: [''] });
+    tabs.push({ name: `Tab ${tabs.length + 1}`, lines: [''] });
     currentTab = tabs.length - 1;
     tabMenu.classList.add('hidden');
     renderTab();

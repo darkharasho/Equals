@@ -5,15 +5,15 @@ body {
   font-family: monospace;
   color: #fff;
   background: transparent;
+  font-size: 14px;
 }
 
 #titlebar {
   height: 24px;
   display: flex;
-  justify-content: flex-end;
   align-items: center;
-  background: rgba(255,255,255,0.05);
   -webkit-app-region: drag;
+  padding: 2px 4px;
 }
 
 .no-drag { -webkit-app-region: no-drag; }
@@ -22,7 +22,10 @@ body {
   padding: 8px;
   height: calc(100% - 24px);
   overflow-y: auto;
+  scrollbar-width: none;
 }
+
+#container::-webkit-scrollbar { display: none; }
 
 .line {
   display: flex;
@@ -40,6 +43,12 @@ body {
   min-width: 40px;
   margin-left: 4px;
   text-align: right;
+  flex-shrink: 0;
+  max-width: 40%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
 }
 
 .number { color: #7aa2f7; }
@@ -49,6 +58,7 @@ body {
 
 #tabs {
   margin-right: 4px;
+  margin-left: auto;
   position: relative;
 }
 
@@ -68,19 +78,27 @@ body {
   position: absolute;
   top: 20px;
   right: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0,0,0,0.6);
   border: 1px solid rgba(255,255,255,0.2);
-  border-radius: 2px;
+  border-radius: 4px;
+  min-width: 120px;
+  padding: 4px 0;
 }
 
 #tab-menu div {
-  padding: 2px 6px;
+  padding: 4px 8px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 #tab-menu div:hover {
   background: rgba(255,255,255,0.1);
 }
+
+.tab-name { flex: 1; }
+.tab-edit, .tab-delete { margin-left: 6px; }
 
 .hidden { display: none; }
 
@@ -103,4 +121,9 @@ body {
 
 .window-btn:hover {
   background: rgba(255,255,255,0.1);
+}
+
+#logo {
+  font-size: 14px;
+  margin-right: 4px;
 }
