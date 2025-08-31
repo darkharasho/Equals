@@ -63,6 +63,8 @@ ipcMain.on('window:resize', (e, size) => {
   }
 });
 
+ipcMain.handle('app:version', () => app.getVersion());
+
 app.whenReady().then(() => {
   createWindow();
 

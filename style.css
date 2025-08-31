@@ -24,6 +24,7 @@ body {
   --currency-color: #bb87f8;
   --settings-bg: rgba(0,0,0,0.3);
   --settings-border: rgba(255,255,255,0.2);
+  --divider-color: rgba(255,255,255,0.1);
   border-image: linear-gradient(135deg, var(--grad1), var(--grad2)) 1;
   border-radius: 16px;
   overflow: hidden;
@@ -37,6 +38,7 @@ body.light {
   --currency-color: #6a1b9a;
   --settings-bg: rgba(255,255,255,0.7);
   --settings-border: rgba(0,0,0,0.2);
+  --divider-color: rgba(0,0,0,0.1);
   background: transparent;
 }
 
@@ -74,6 +76,8 @@ body.light {
 .res {
   min-width: 40px;
   margin-left: 4px;
+  padding-left: 4px;
+  border-left: 1px solid var(--divider-color);
   text-align: right;
   flex-shrink: 0;
   max-width: 40%;
@@ -124,11 +128,13 @@ body.light #settings-btn {
   border-radius: 4px;
   min-width: 120px;
   padding: 4px 0;
+  backdrop-filter: blur(8px);
 }
 
 body.light #tab-menu {
   background: rgba(255,255,255,0.9);
   border: 1px solid rgba(0,0,0,0.2);
+  backdrop-filter: blur(8px);
 }
 
 #tab-menu div {
@@ -185,6 +191,7 @@ body.light .window-btn:hover {
 #logo {
   font-size: 14px;
   margin-right: 4px;
+  user-select: none;
 }
 
 #settings {
@@ -207,4 +214,40 @@ body.light .window-btn:hover {
   color: var(--text-color);
   border: 1px solid var(--settings-border);
   border-radius: 4px;
+}
+
+.setting select option {
+  background: var(--settings-bg);
+  color: var(--text-color);
+}
+
+.version {
+  margin-top: auto;
+  text-align: right;
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+#toast {
+  position: fixed;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.7);
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+body.light #toast {
+  background: rgba(255,255,255,0.8);
+  color: #000;
+}
+
+#toast.show {
+  opacity: 1;
 }

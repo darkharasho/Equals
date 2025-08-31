@@ -51,6 +51,8 @@ const themeSelect = document.getElementById('theme-select');
 const gradientSelect = document.getElementById('gradient-select');
 const sizeSelect = document.getElementById('size-select');
 const fontSizeInput = document.getElementById('font-size');
+const versionEl = document.getElementById('version');
+const toast = document.getElementById('toast');
 
 function saveState() {
   const settings = {
@@ -98,6 +100,10 @@ function applySettings() {
 
 loadState();
 applySettings();
+
+ipcRenderer.invoke('app:version').then(v => {
+  if (versionEl) versionEl.textContent = 'v' + v;
+});
 
 minBtn.addEventListener('click', () => ipcRenderer.send('window:minimize'));
 maxBtn.addEventListener('click', () => ipcRenderer.send('window:maximize'));
@@ -147,6 +153,8 @@ function compute(text) {
   if (!text.trim()) return '';
   const currencyMatch = text.match(/[$€£]/);
   let expr = text
+    .replace(/([0-9.]+)\s*([+\-])\s*([0-9.]+)%/g, (_, a, op, b) => `${a}${op}${a}*(${b}/100)`)
+    .replace(/([0-9.]+)\s*([*/])\s*([0-9.]+)%/g, (_, a, op, b) => `${a}${op}(${b}/100)`)
     .replace(/(\d+(?:\.\d+)?)%/g, '($1/100)')
     .replace(/[$€£]/g, '')
     .replace(/,/g, '');
@@ -159,6 +167,12 @@ function compute(text) {
   } catch {
     return '';
   }
+}
+
+function showToast(msg) {
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 1000);
 }
 
 function renderTab() {
@@ -183,6 +197,7 @@ function renderTab() {
     res.dataset.full = result;
     res.addEventListener('click', () => {
       navigator.clipboard.writeText(res.dataset.full || '');
+      showToast('Copied');
     });
 
     line.appendChild(expr);
@@ -303,6 +318,12 @@ function renderTabMenu() {
 tabBtn.addEventListener('click', () => {
   tabMenu.classList.toggle('hidden');
   renderTabMenu();
+});
+
+document.addEventListener('click', (e) => {
+  if (!tabMenu.classList.contains('hidden') && !tabBtn.contains(e.target) && !tabMenu.contains(e.target)) {
+    tabMenu.classList.add('hidden');
+  }
 });
 
 settingsBtn.addEventListener('click', () => {
