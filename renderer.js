@@ -320,6 +320,7 @@ function renderTab() {
     const expr = document.createElement('span');
     expr.className = 'expr';
     expr.dataset.index = index;
+    expr.contentEditable = 'true';
     expr.innerHTML = highlight(text, index);
     expr.addEventListener('input', onInput);
     expr.addEventListener('keydown', onKey);
