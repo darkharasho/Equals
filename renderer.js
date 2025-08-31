@@ -319,6 +319,7 @@ function recalc(focusIdx = null, caretPos = null) {
     if (expr) setCaret(expr, caretPos);
   }
   updateDivider();
+  clampScroll();
   saveState();
 }
 
@@ -337,6 +338,11 @@ function updateDivider() {
     });
     container.style.setProperty('--divider-left', minLeft + 'px');
   }
+}
+
+function clampScroll() {
+  const max = Math.max(0, container.scrollHeight - container.clientHeight);
+  if (container.scrollTop > max) container.scrollTop = max;
 }
 
 function underlineResult(idx) {
@@ -420,6 +426,7 @@ function renderTab() {
     container.appendChild(line);
   });
   updateDivider();
+  clampScroll();
   saveState();
 }
 
@@ -448,8 +455,29 @@ function onKey(e) {
       target.focus();
       setCaret(target, 0);
       target.scrollIntoView({ block: 'nearest' });
+      clampScroll();
     }
-  } else if ((e.key === 'Backspace' || e.key === 'Delete') && e.target.innerText === '') {
+  } else if (e.key === 'Backspace') {
+    const caret = getCaret(e.target);
+    if (caret === 0) {
+      e.preventDefault();
+      if (index > 0) {
+        const curr = tabs[currentTab].lines[index];
+        const prevText = tabs[currentTab].lines[index - 1];
+        const newPos = prevText.length;
+        tabs[currentTab].lines[index - 1] = prevText + curr;
+        tabs[currentTab].lines.splice(index, 1);
+        renderTab();
+        const prev = container.querySelector(`.expr[data-index="${index - 1}"]`);
+        if (prev) {
+          prev.focus();
+          setCaret(prev, newPos);
+          prev.scrollIntoView({ block: 'nearest' });
+          clampScroll();
+        }
+      }
+    }
+  } else if (e.key === 'Delete' && e.target.innerText === '') {
     e.preventDefault();
     if (tabs[currentTab].lines.length > 1) {
       tabs[currentTab].lines.splice(index, 1);
@@ -459,6 +487,7 @@ function onKey(e) {
         prev.focus();
         setCaret(prev, prev.innerText.length);
         prev.scrollIntoView({ block: 'nearest' });
+        clampScroll();
       }
     }
   } else if (e.key === 'ArrowUp') {

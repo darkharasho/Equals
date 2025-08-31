@@ -66,6 +66,7 @@ body.light {
   overflow-y: auto;
   scrollbar-width: none;
   position: relative;
+  overscroll-behavior: contain;
 }
 
 #container::-webkit-scrollbar { display: none; }
