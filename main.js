@@ -31,24 +31,30 @@ ipcMain.on('window:minimize', (e) => {
 
 ipcMain.on('theme', (e, theme) => {
   const win = BrowserWindow.fromWebContents(e.sender);
+  const isLight = theme === 'light' || theme === 'vibrant-light';
   if (process.platform === 'darwin') {
     if (theme === 'vibrant-light') {
       win.setVibrancy('light');
+      win.setBackgroundColor('#00000000');
       nativeTheme.themeSource = 'light';
     } else if (theme === 'vibrant-dark') {
       win.setVibrancy('ultra-dark');
+      win.setBackgroundColor('#00000000');
       nativeTheme.themeSource = 'dark';
     } else {
       win.setVibrancy(null);
-      nativeTheme.themeSource = theme === 'light' ? 'light' : 'dark';
+      win.setBackgroundColor(isLight ? '#ffffffff' : '#000000ff');
+      nativeTheme.themeSource = isLight ? 'light' : 'dark';
     }
   } else {
     if (theme === 'acrylic') {
       win.setBackgroundMaterial('acrylic');
+      win.setBackgroundColor('#00000000');
       nativeTheme.themeSource = 'dark';
     } else {
       win.setBackgroundMaterial('mica');
-      nativeTheme.themeSource = theme === 'light' ? 'light' : 'dark';
+      win.setBackgroundColor(isLight ? '#ffffffff' : '#000000ff');
+      nativeTheme.themeSource = isLight ? 'light' : 'dark';
     }
   }
 });

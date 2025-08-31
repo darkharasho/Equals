@@ -12,7 +12,7 @@ body {
   margin: 0;
   font-family: monospace;
   color: var(--text-color);
-  background: transparent;
+  background: rgba(16,16,16,0.8);
   font-size: 16px;
   border: 2px solid;
   --grad1: #bb87f8;
@@ -49,16 +49,21 @@ body.light {
   --settings-border: rgba(0,0,0,0.1);
   --divider-color: rgba(0,0,0,0.15);
   --color-scheme: light;
-  background: transparent;
+  background: rgba(255,255,255,0.8);
 }
 
 body.mac #window-controls {
   display: none;
 }
 
+body.mac #tabs {
+  order: 1;
+  margin-left: auto;
+}
+
 body.mac #logo {
   order: 2;
-  margin-left: auto;
+  margin-left: 4px;
   margin-right: 4px;
 }
 
