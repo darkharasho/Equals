@@ -3,10 +3,11 @@ const path = require('path');
 
 function createWindow() {
   const win = new BrowserWindow({
-    width: 216,
-    height: 216,
-    minWidth: 216,
-    minHeight: 216,
+    width: 300,
+    height: 300,
+    minWidth: 300,
+    minHeight: 300,
+    resizable: false,
     frame: false,
     transparent: true,
     titleBarStyle: 'hidden',
@@ -43,6 +44,12 @@ ipcMain.on('window:maximize', (e) => {
 ipcMain.on('window:close', (e) => {
   const win = BrowserWindow.fromWebContents(e.sender);
   win.close();
+});
+
+ipcMain.on('window:resize', (e, size) => {
+  const win = BrowserWindow.fromWebContents(e.sender);
+  win.setSize(size.width, size.height);
+  win.setMinimumSize(size.width, size.height);
 });
 
 app.whenReady().then(() => {

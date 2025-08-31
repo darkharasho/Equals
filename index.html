@@ -33,10 +33,25 @@
     <div class="setting">
       <label for="gradient-select">Gradient:</label>
       <select id="gradient-select">
+        <option value="#bb87f8,#7aa2f7">Purple-Blue</option>
         <option value="#7aa2f7,#ffb454">Blue-Orange</option>
         <option value="#ff6bcb,#00d1b2">Pink-Teal</option>
         <option value="#ff7b00,#ffee00">Red-Yellow</option>
+        <option value="#00d1b2,#0066ff">Teal-Blue</option>
+        <option value="#ff4e50,#1f1c2c">Coral-Indigo</option>
       </select>
+    </div>
+    <div class="setting">
+      <label for="size-select">Window Size:</label>
+      <select id="size-select">
+        <option value="216,216">Small</option>
+        <option value="300,300" selected>Medium</option>
+        <option value="400,400">Large</option>
+      </select>
+    </div>
+    <div class="setting">
+      <label for="font-size">Font Size:</label>
+      <input id="font-size" type="number" min="12" max="24" value="16" />
     </div>
   </div>
   <script src="renderer.js"></script>

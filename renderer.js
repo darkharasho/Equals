@@ -15,6 +15,8 @@ const closeBtn = document.getElementById('close-btn');
 const settingsView = document.getElementById('settings');
 const themeSelect = document.getElementById('theme-select');
 const gradientSelect = document.getElementById('gradient-select');
+const sizeSelect = document.getElementById('size-select');
+const fontSizeInput = document.getElementById('font-size');
 
 document.body.classList.add('dark');
 
@@ -239,6 +241,16 @@ gradientSelect.addEventListener('change', (e) => {
   const [c1, c2] = e.target.value.split(',');
   document.body.style.setProperty('--grad1', c1);
   document.body.style.setProperty('--grad2', c2);
+});
+
+sizeSelect.addEventListener('change', (e) => {
+  const [w, h] = e.target.value.split(',').map(Number);
+  ipcRenderer.send('window:resize', { width: w, height: h });
+});
+
+fontSizeInput.addEventListener('change', (e) => {
+  const size = Number(e.target.value) || 16;
+  document.body.style.fontSize = size + 'px';
 });
 
 renderTab();
