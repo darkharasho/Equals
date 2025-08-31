@@ -3,15 +3,16 @@ const path = require('path');
 
 function createWindow() {
   const win = new BrowserWindow({
-    width: 300,
-    height: 300,
-    minWidth: 300,
-    minHeight: 300,
+    width: 216,
+    height: 216,
+    minWidth: 216,
+    minHeight: 216,
     frame: false,
     transparent: true,
     titleBarStyle: 'hidden',
     backgroundMaterial: 'mica',
     backgroundColor: '#00000000',
+    roundedCorners: true,
     icon: path.join(__dirname, 'app/icons/equals.png'),
     webPreferences: {
       nodeIntegration: true,
@@ -25,6 +26,12 @@ function createWindow() {
 ipcMain.on('window:minimize', (e) => {
   const win = BrowserWindow.fromWebContents(e.sender);
   win.minimize();
+});
+
+ipcMain.on('theme', (e, theme) => {
+  const win = BrowserWindow.fromWebContents(e.sender);
+  if (theme === 'acrylic') win.setBackgroundMaterial('acrylic');
+  else win.setBackgroundMaterial('mica');
 });
 
 ipcMain.on('window:maximize', (e) => {

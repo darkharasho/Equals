@@ -3,13 +3,20 @@ const { ipcRenderer } = require('electron');
 
 let tabs = [{ name: 'Tab 1', lines: [''] }];
 let currentTab = 0;
+let lastKey = '';
 
 const container = document.getElementById('container');
 const tabBtn = document.getElementById('tab-btn');
+const settingsBtn = document.getElementById('settings-btn');
 const tabMenu = document.getElementById('tab-menu');
 const minBtn = document.getElementById('min-btn');
 const maxBtn = document.getElementById('max-btn');
 const closeBtn = document.getElementById('close-btn');
+const settingsView = document.getElementById('settings');
+const themeSelect = document.getElementById('theme-select');
+const gradientSelect = document.getElementById('gradient-select');
+
+document.body.classList.add('dark');
 
 minBtn.addEventListener('click', () => ipcRenderer.send('window:minimize'));
 maxBtn.addEventListener('click', () => ipcRenderer.send('window:maximize'));
@@ -17,10 +24,15 @@ closeBtn.addEventListener('click', () => ipcRenderer.send('window:close'));
 
 const currencyMap = { '$': 'USD', '€': 'EUR', '£': 'GBP' };
 
-function formatNumber(num, sym) {
+function formatNumber(num, sym, force = true) {
   try {
     if (sym && currencyMap[sym]) {
-      return new Intl.NumberFormat(undefined, { style: 'currency', currency: currencyMap[sym] }).format(num);
+      return new Intl.NumberFormat(undefined, {
+        style: 'currency',
+        currency: currencyMap[sym],
+        minimumFractionDigits: force ? 2 : 0,
+        maximumFractionDigits: force ? 2 : 0
+      }).format(num);
     }
     return new Intl.NumberFormat().format(num);
   } catch {
@@ -36,8 +48,9 @@ function highlight(text) {
     }
     const sym = match[0];
     if (currencyMap[sym]) {
+      const hasDec = match.includes('.');
       const n = Number(match.slice(1));
-      return `<span class="currency">${formatNumber(n, sym)}</span>`;
+      return `<span class="currency">${formatNumber(n, sym, hasDec)}</span>`;
     }
     const n = Number(match);
     return `<span class="number">${formatNumber(n)}</span>`;
@@ -95,6 +108,9 @@ function renderTab() {
 function onInput(e) {
   const index = Number(e.target.dataset.index);
   let raw = e.target.innerText.replace(/,/g, '');
+  if (lastKey && (lastKey === ' ' || '+-*/'.includes(lastKey))) {
+    raw = raw.replace(/([$€£]\d+)(?!\.\d)/g, '$1.00');
+  }
   raw = raw.replace(/([$€£])(\d+)(?:\.(\d{2}))?(\d*)/g, (_, sym, intp, dec = '', extra = '') => {
     if (dec === '00' && extra) {
       intp += extra;
@@ -104,6 +120,7 @@ function onInput(e) {
     }
     return sym + intp + (dec ? '.' + dec : '');
   });
+  lastKey = '';
   tabs[currentTab].lines[index] = raw;
   e.target.innerHTML = highlight(raw);
   placeCaretAtEnd(e.target);
@@ -114,6 +131,7 @@ function onInput(e) {
 }
 
 function onKey(e) {
+  lastKey = e.key;
   const index = Number(e.target.dataset.index);
   if (e.key === 'Enter') {
     e.preventDefault();
@@ -203,6 +221,24 @@ function renderTabMenu() {
 tabBtn.addEventListener('click', () => {
   tabMenu.classList.toggle('hidden');
   renderTabMenu();
+});
+
+settingsBtn.addEventListener('click', () => {
+  const showing = !settingsView.classList.toggle('hidden');
+  container.classList.toggle('hidden', showing);
+});
+
+themeSelect.addEventListener('change', (e) => {
+  document.body.classList.remove('light', 'dark');
+  if (e.target.value === 'light') document.body.classList.add('light');
+  else document.body.classList.add('dark');
+  ipcRenderer.send('theme', e.target.value);
+});
+
+gradientSelect.addEventListener('change', (e) => {
+  const [c1, c2] = e.target.value.split(',');
+  document.body.style.setProperty('--grad1', c1);
+  document.body.style.setProperty('--grad2', c2);
 });
 
 renderTab();

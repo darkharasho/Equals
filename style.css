@@ -12,10 +12,14 @@ body {
   background: transparent;
   font-size: 16px;
   border: 2px solid;
-  border-image: linear-gradient(135deg, #7aa2f7, #ffb454) 1;
-  border-radius: 8px;
+  --grad1: #7aa2f7;
+  --grad2: #ffb454;
+  border-image: linear-gradient(135deg, var(--grad1), var(--grad2)) 1;
+  border-radius: 12px;
   overflow: hidden;
 }
+
+body.light { color: #000; }
 
 #titlebar {
   height: 24px;
@@ -69,9 +73,12 @@ body {
   margin-right: 4px;
   margin-left: auto;
   position: relative;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
-#tab-btn {
+#tab-btn, #settings-btn {
   width: 16px;
   height: 16px;
   line-height: 16px;
@@ -136,3 +143,14 @@ body {
   font-size: 14px;
   margin-right: 4px;
 }
+
+#settings {
+  padding: 8px;
+  height: calc(100% - 24px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.setting label { margin-right: 4px; }
