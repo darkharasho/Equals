@@ -60,9 +60,6 @@ const toast = document.getElementById('toast');
 function updateGradientPreview() {
   const [c1, c2] = gradientSelect.value.split(',');
   gradientSelect.style.background = `linear-gradient(90deg, ${c1}, ${c2})`;
-  gradientSelect.style.webkitBackgroundClip = 'text';
-  gradientSelect.style.backgroundClip = 'text';
-  gradientSelect.style.webkitTextFillColor = 'transparent';
 }
 
 function saveState() {

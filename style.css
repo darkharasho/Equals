@@ -267,14 +267,6 @@ body.light .window-btn:hover {
   color: var(--text-color);
 }
 
-.setting select option.grad-option {
-  color: transparent;
-  background-color: transparent;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
 .version {
   margin-top: auto;
   text-align: right;
