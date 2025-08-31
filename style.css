@@ -345,6 +345,10 @@ body.light .window-btn:hover {
   color: var(--text-color);
 }
 
+#angle-mode {
+  width: 100%;
+}
+
 .version {
   margin-top: auto;
   text-align: right;
