@@ -132,6 +132,63 @@ function formatNumber(num, sym, decimals) {
   }
 }
 
+function timeToMinutes(str) {
+  const m = str.match(/(\d{1,2}):(\d{2})(am|pm)?/i);
+  if (m) {
+    let h = Number(m[1]);
+    const min = Number(m[2]);
+    const period = m[3];
+    if (period) {
+      const p = period.toLowerCase();
+      if (p === 'pm' && h < 12) h += 12;
+      if (p === 'am' && h === 12) h = 0;
+    }
+    return h * 60 + min;
+  }
+  return 0;
+}
+
+function formatTimeOfDay(mins) {
+  mins = ((mins % (24 * 60)) + (24 * 60)) % (24 * 60);
+  let h = Math.floor(mins / 60);
+  const m = Math.floor(mins % 60);
+  const period = h >= 12 ? 'pm' : 'am';
+  if (h === 0) h = 12;
+  else if (h > 12) h -= 12;
+  return `${h}:${m.toString().padStart(2, '0')}${period}`;
+}
+
+function formatDuration(mins) {
+  let total = Math.round(mins * 60);
+  const sign = total < 0 ? -1 : 1;
+  total = Math.abs(total);
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  const parts = [];
+  if (h) parts.push(`${h}hr`);
+  if (m) parts.push(`${m}m`);
+  if (s) parts.push(`${s}s`);
+  if (!parts.length) parts.push('0m');
+  return (sign < 0 ? '-' : '') + parts.join(' ');
+}
+
+function replaceTimeTokens(expr, state) {
+  return expr
+    .replace(/\b(\d{1,2}:\d{2}(?:am|pm)?)\b/gi, (_, t) => {
+      state.hasTime = true;
+      state.hasTimeOfDay = true;
+      return timeToMinutes(t);
+    })
+    .replace(/(\d+)\s*(hr|h|m|min|s|sec)\b/gi, (_, n, unit) => {
+      state.hasTime = true;
+      const num = Number(n);
+      if (/^hr|h$/i.test(unit)) return num * 60;
+      if (/^s|sec$/i.test(unit)) return num / 60;
+      return num;
+    });
+}
+
 function esc(str) {
   return str.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
 }
@@ -150,7 +207,10 @@ function highlight(text, idx = 0) {
   }
   const safe = esc(text);
   const lastIdx = findLastIndex(idx);
-  return safe.replace(/\$[a-zA-Z_]\w*|""|[$€£]?\d+(?:\.\d+)?%?/g, (match) => {
+  return safe.replace(/\$[a-zA-Z_]\w*|""|\d{1,2}:\d{2}(?:am|pm)?|\d+\s*(?:hr|h|m|min|s|sec)|[$€£]?\d+(?:\.\d+)?%?/gi, (match) => {
+    if (/^\d{1,2}:\d{2}(?:am|pm)?$/i.test(match) || /^\d+\s*(?:hr|h|m|min|s|sec)$/i.test(match)) {
+      return `<span class="time">${match}</span>`;
+    }
     if (match === '""') {
       return `<span class="last" data-ref="${lastIdx}">""</span>`;
     }
@@ -179,13 +239,14 @@ function highlight(text, idx = 0) {
 }
 
 function compute(text, results, metas) {
-  if (!text.trim() || /^\s*#\s/.test(text)) return { display: '', value: null, sym: null, decimals: undefined, assign: null };
+  if (!text.trim() || /^\s*#\s/.test(text)) return { display: '', value: null, sym: null, decimals: undefined, assign: null, isTime: false, timeOfDay: false };
   const assign = text.match(/^\s*\$([a-zA-Z_]\w*)\s*=\s*(.+)$/);
   let exprText = assign ? assign[2] : text;
   let sym = null;
   let decimals;
   exprText = exprText.replace(/([$€£])(?=\d)/g, m => { sym = sym || m; decimals = 2; return ''; });
   let last = null;
+  const timeState = { hasTime: false, hasTimeOfDay: false };
   for (let i = metas.length - 1; i >= 0; i--) {
     const m = metas[i];
     if (m && typeof m.value === 'number') { last = m; break; }
@@ -193,16 +254,20 @@ function compute(text, results, metas) {
   exprText = exprText
     .replace(/""/g, () => {
       if (!sym && last && last.sym) { sym = last.sym; decimals = last.decimals; }
+      if (last && last.isTime) { timeState.hasTime = true; if (last.timeOfDay) timeState.hasTimeOfDay = true; }
       return last ? last.value : 0;
     })
     .replace(/\$([a-zA-Z_]\w*)/g, (_, n) => {
       const v = vars[n];
       if (v) {
         if (!sym && v.sym) { sym = v.sym; decimals = v.decimals; }
+        if (v.isTime) { timeState.hasTime = true; if (v.timeOfDay) timeState.hasTimeOfDay = true; }
         return v.value;
       }
       return 0;
-    })
+    });
+
+  exprText = replaceTimeTokens(exprText, timeState)
     .replace(/([0-9.]+)\s*([+\-])\s*([0-9.]+)%/g, (_, a, op, b) => `${a}${op}${a}*(${b}/100)`)
     .replace(/([0-9.]+)\s*([*/])\s*([0-9.]+)%/g, (_, a, op, b) => `${a}${op}(${b}/100)`)
     .replace(/(\d+(?:\.\d+)?)%/g, '($1/100)')
@@ -210,12 +275,20 @@ function compute(text, results, metas) {
   try {
     const res = math.evaluate(exprText);
     if (typeof res === 'number') {
+      if (timeState.hasTime) {
+        if (timeState.hasTimeOfDay) {
+          const display = formatTimeOfDay(res);
+          return { display, value: res, sym: null, decimals: undefined, assign: assign ? assign[1] : null, isTime: true, timeOfDay: true };
+        }
+        const display = formatDuration(res);
+        return { display, value: res, sym: null, decimals: undefined, assign: assign ? assign[1] : null, isTime: true, timeOfDay: false };
+      }
       const display = formatNumber(res, sym, sym ? 2 : decimals);
-      return { display, value: res, sym, decimals: sym ? 2 : decimals, assign: assign ? assign[1] : null };
+      return { display, value: res, sym, decimals: sym ? 2 : decimals, assign: assign ? assign[1] : null, isTime: false, timeOfDay: false };
     }
-    return { display: '', value: null, sym: null, decimals: undefined, assign: null };
+    return { display: '', value: null, sym: null, decimals: undefined, assign: null, isTime: false, timeOfDay: false };
   } catch {
-    return { display: '', value: null, sym: null, decimals: undefined, assign: null };
+    return { display: '', value: null, sym: null, decimals: undefined, assign: null, isTime: false, timeOfDay: false };
   }
 }
 
@@ -225,26 +298,28 @@ function recalc(focusIdx = null, caretPos = null) {
   lineMeta = [];
   vars = {};
   lines.forEach((text, idx) => {
-    const { display, value, sym, decimals, assign } = compute(text, lineResults, lineMeta);
+    const { display, value, sym, decimals, assign, isTime, timeOfDay } = compute(text, lineResults, lineMeta);
     const resEl = container.querySelector(`.res[data-index="${idx}"]`);
     const exprEl = container.querySelector(`.expr[data-index="${idx}"]`);
     if (resEl) {
       resEl.textContent = display;
       resEl.dataset.full = display;
+      resEl.className = `res ${isTime ? 'time' : 'answer'}`;
     }
     if (exprEl) {
       exprEl.innerHTML = highlight(text, idx);
       attachRefEvents(exprEl);
     }
     lineResults.push(value);
-    lineMeta.push({ value, sym, decimals, display });
-    if (assign) vars[assign] = { value, sym, decimals, display, line: idx };
+    lineMeta.push({ value, sym, decimals, display, isTime, timeOfDay });
+    if (assign) vars[assign] = { value, sym, decimals, display, line: idx, isTime, timeOfDay };
   });
   if (focusIdx !== null && caretPos !== null) {
     const expr = container.querySelector(`.expr[data-index="${focusIdx}"]`);
     if (expr) setCaret(expr, caretPos);
   }
   updateDivider();
+  clampScroll();
   saveState();
 }
 
@@ -263,6 +338,11 @@ function updateDivider() {
     });
     container.style.setProperty('--divider-left', minLeft + 'px');
   }
+}
+
+function clampScroll() {
+  const max = Math.max(0, container.scrollHeight - container.clientHeight);
+  if (container.scrollTop > max) container.scrollTop = max;
 }
 
 function underlineResult(idx) {
@@ -312,10 +392,10 @@ function renderTab() {
   lineMeta = [];
   vars = {};
   lines.forEach((text, index) => {
-    const { display, value, sym, decimals, assign } = compute(text, lineResults, lineMeta);
+    const { display, value, sym, decimals, assign, isTime, timeOfDay } = compute(text, lineResults, lineMeta);
     lineResults.push(value);
-    lineMeta.push({ value, sym, decimals, display });
-    if (assign) vars[assign] = { value, sym, decimals, display, line: index };
+    lineMeta.push({ value, sym, decimals, display, isTime, timeOfDay });
+    if (assign) vars[assign] = { value, sym, decimals, display, line: index, isTime, timeOfDay };
 
     const line = document.createElement('div');
     line.className = 'line';
@@ -331,7 +411,7 @@ function renderTab() {
     attachRefEvents(expr);
 
     const res = document.createElement('span');
-    res.className = 'res answer';
+    res.className = `res ${isTime ? 'time' : 'answer'}`;
     res.dataset.index = index;
     res.contentEditable = false;
     res.textContent = display;
@@ -346,6 +426,7 @@ function renderTab() {
     container.appendChild(line);
   });
   updateDivider();
+  clampScroll();
   saveState();
 }
 
@@ -365,11 +446,38 @@ function onKey(e) {
   const index = Number(e.target.dataset.index);
   if (e.key === 'Enter') {
     e.preventDefault();
-    tabs[currentTab].lines.splice(index + 1, 0, '');
+    const caret = getCaret(e.target);
+    const insertIdx = caret === 0 ? index : index + 1;
+    tabs[currentTab].lines.splice(insertIdx, 0, '');
     renderTab();
-    const next = container.querySelector(`.expr[data-index="${index + 1}"]`);
-    next.focus();
-  } else if (e.key === 'Backspace' && e.target.innerText === '') {
+    const target = container.querySelector(`.expr[data-index="${insertIdx}"]`);
+    if (target) {
+      target.focus();
+      setCaret(target, 0);
+      target.scrollIntoView({ block: 'nearest' });
+      clampScroll();
+    }
+  } else if (e.key === 'Backspace') {
+    const caret = getCaret(e.target);
+    if (caret === 0) {
+      e.preventDefault();
+      if (index > 0) {
+        const curr = tabs[currentTab].lines[index];
+        const prevText = tabs[currentTab].lines[index - 1];
+        const newPos = prevText.length;
+        tabs[currentTab].lines[index - 1] = prevText + curr;
+        tabs[currentTab].lines.splice(index, 1);
+        renderTab();
+        const prev = container.querySelector(`.expr[data-index="${index - 1}"]`);
+        if (prev) {
+          prev.focus();
+          setCaret(prev, newPos);
+          prev.scrollIntoView({ block: 'nearest' });
+          clampScroll();
+        }
+      }
+    }
+  } else if (e.key === 'Delete' && e.target.innerText === '') {
     e.preventDefault();
     if (tabs[currentTab].lines.length > 1) {
       tabs[currentTab].lines.splice(index, 1);
@@ -378,6 +486,8 @@ function onKey(e) {
       if (prev) {
         prev.focus();
         setCaret(prev, prev.innerText.length);
+        prev.scrollIntoView({ block: 'nearest' });
+        clampScroll();
       }
     }
   } else if (e.key === 'ArrowUp') {

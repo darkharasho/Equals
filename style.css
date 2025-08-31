@@ -24,6 +24,7 @@ body {
   --currency-color: #bb87f8;
   --var-color: #c678dd;
   --comment-color: #6a9955;
+  --time-color: #e06c75;
   --settings-bg: rgba(16,16,16,0.9);
   --settings-border: rgba(255,255,255,0.1);
   --divider-color: rgba(255,255,255,0.05);
@@ -41,6 +42,7 @@ body.light {
   --currency-color: #6a1b9a;
   --var-color: #8e44ad;
   --comment-color: #008000;
+  --time-color: #d32f2f;
   --settings-bg: rgba(255,255,255,0.8);
   --settings-border: rgba(0,0,0,0.1);
   --divider-color: rgba(0,0,0,0.15);
@@ -64,6 +66,7 @@ body.light {
   overflow-y: auto;
   scrollbar-width: none;
   position: relative;
+  overscroll-behavior: contain;
 }
 
 #container::-webkit-scrollbar { display: none; }
@@ -95,6 +98,15 @@ body.light {
   white-space: pre-wrap;
   word-break: break-word;
   outline: none;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  background-image: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--text-color) 70%, white),
+    var(--text-color)
+  );
+  caret-color: var(--text-color);
 }
 
 .res {
@@ -112,13 +124,79 @@ body.light {
 
 .res.underline { text-decoration: underline; }
 
-.number { color: var(--number-color); }
-.answer { color: var(--answer-color); }
-.percent { color: var(--percent-color); }
-.currency { color: var(--currency-color); }
-.variable { color: var(--var-color); }
-.last { color: var(--var-color); }
-.comment { color: var(--comment-color); }
+.number,
+.answer,
+.percent,
+.currency,
+.variable,
+.time,
+.last {
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  caret-color: var(--text-color);
+}
+
+.number {
+  background-image: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--number-color) 70%, white),
+    var(--number-color)
+  );
+}
+
+.answer {
+  background-image: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--answer-color) 70%, white),
+    var(--answer-color)
+  );
+}
+
+.percent {
+  background-image: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--percent-color) 70%, white),
+    var(--percent-color)
+  );
+}
+
+.currency {
+  background-image: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--currency-color) 70%, white),
+    var(--currency-color)
+  );
+}
+
+.variable,
+.last {
+  background-image: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--var-color) 70%, white),
+    var(--var-color)
+  );
+}
+
+.time {
+  background-image: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--time-color) 70%, white),
+    var(--time-color)
+  );
+}
+
+.comment {
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  background-image: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--comment-color) 70%, white),
+    var(--comment-color)
+  );
+  caret-color: var(--text-color);
+}
 
 #tabs {
   margin-right: 4px;
