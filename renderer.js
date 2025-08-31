@@ -3,7 +3,6 @@ const { ipcRenderer } = require('electron');
 
 let tabs = [{ name: 'Tab 1', lines: [''] }];
 let currentTab = 0;
-let lastKey = '';
 let lineResults = [];
 let lineMeta = [];
 let vars = {};
@@ -353,22 +352,15 @@ function onInput(e) {
   let index = Number(e.target.dataset.index);
   const caret = getCaret(e.target);
   let raw = e.target.innerText.replace(/,/g, '');
-  if (lastKey && (lastKey === ' ' || '+-*/'.includes(lastKey))) {
-    raw = raw.replace(/([$€£])(\d+)(?:\.(\d{0,2}))?/g, (_, sym, intp, dec = '') => {
-      dec = (dec + '00').slice(0, 2);
-      return sym + intp + '.' + dec;
-    });
-  }
+  // constrain currency decimals without auto-appending values
   raw = raw.replace(/([$€£])(\d+)(\.?)(\d*)/g, (_, sym, intp, dot, dec) => {
     return sym + intp + (dot ? '.' + dec.slice(0, 2) : '');
   });
-  lastKey = '';
   tabs[currentTab].lines[index] = raw;
   recalc(index, caret);
 }
 
 function onKey(e) {
-  lastKey = e.key;
   const index = Number(e.target.dataset.index);
   if (e.key === 'Enter') {
     e.preventDefault();

@@ -24,8 +24,8 @@ body {
   --currency-color: #bb87f8;
   --var-color: #c678dd;
   --comment-color: #6a9955;
-  --settings-bg: rgba(0,0,0,0.3);
-  --settings-border: rgba(255,255,255,0.2);
+  --settings-bg: rgba(32,32,32,0.8);
+  --settings-border: rgba(255,255,255,0.1);
   --divider-color: rgba(255,255,255,0.05);
   border-image: linear-gradient(135deg, var(--grad1), var(--grad2)) 1;
   border-radius: 16px;
@@ -40,8 +40,8 @@ body.light {
   --currency-color: #6a1b9a;
   --var-color: #8e44ad;
   --comment-color: #008000;
-  --settings-bg: rgba(255,255,255,0.5);
-  --settings-border: rgba(0,0,0,0.2);
+  --settings-bg: rgba(255,255,255,0.8);
+  --settings-border: rgba(0,0,0,0.1);
   --divider-color: rgba(0,0,0,0.15);
   background: transparent;
 }
@@ -243,12 +243,20 @@ body.light .window-btn:hover {
 .setting select,
 .setting input {
   width: 100%;
+  padding: 4px 8px;
   background: var(--settings-bg);
   color: var(--text-color);
   border: 1px solid var(--settings-border);
-  border-radius: 4px;
+  border-radius: 6px;
   -webkit-appearance: none;
   appearance: none;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.setting select:focus,
+.setting input:focus {
+  outline: none;
+  border-color: var(--answer-color);
 }
 
 .setting select option {
