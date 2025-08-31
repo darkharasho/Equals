@@ -11,19 +11,28 @@ html { overflow: hidden; }
 body {
   margin: 0;
   font-family: monospace;
-  color: #fff;
+  color: var(--text-color);
   background: transparent;
   font-size: 16px;
   border: 2px solid;
   --grad1: #bb87f8;
   --grad2: #7aa2f7;
+  --text-color: #eaeaea;
+  --number-color: #7aa2f7;
+  --answer-color: #ffb454;
+  --percent-color: #98c379;
+  --currency-color: #bb87f8;
   border-image: linear-gradient(135deg, var(--grad1), var(--grad2)) 1;
   border-radius: 16px;
   overflow: hidden;
 }
 
 body.light {
-  color: #000;
+  --text-color: #111;
+  --number-color: #004aad;
+  --answer-color: #b35a00;
+  --percent-color: #137333;
+  --currency-color: #6a1b9a;
   background: rgba(255,255,255,0.6);
 }
 
@@ -70,10 +79,10 @@ body.light {
   cursor: pointer;
 }
 
-.number { color: #7aa2f7; }
-.answer { color: #ffb454; }
-.percent { color: #98c379; }
-.currency { color: #bb87f8; }
+.number { color: var(--number-color); }
+.answer { color: var(--answer-color); }
+.percent { color: var(--percent-color); }
+.currency { color: var(--currency-color); }
 
 #tabs {
   margin-right: 4px;

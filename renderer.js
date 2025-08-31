@@ -18,7 +18,50 @@ const gradientSelect = document.getElementById('gradient-select');
 const sizeSelect = document.getElementById('size-select');
 const fontSizeInput = document.getElementById('font-size');
 
-document.body.classList.add('dark');
+function saveState() {
+  const settings = {
+    theme: themeSelect.value,
+    gradient: gradientSelect.value,
+    size: sizeSelect.value,
+    fontSize: fontSizeInput.value
+  };
+  localStorage.setItem('equalsState', JSON.stringify({ tabs, currentTab, settings }));
+}
+
+function loadState() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('equalsState') || '{}');
+    if (saved.tabs) tabs = saved.tabs;
+    if (typeof saved.currentTab === 'number') currentTab = saved.currentTab;
+    if (saved.settings) {
+      themeSelect.value = saved.settings.theme || 'dark';
+      gradientSelect.value = saved.settings.gradient || '#bb87f8,#7aa2f7';
+      sizeSelect.value = saved.settings.size || '300,300';
+      fontSizeInput.value = saved.settings.fontSize || 16;
+    }
+  } catch {}
+}
+
+function applyTheme(theme) {
+  document.body.classList.remove('light', 'dark');
+  if (theme === 'light') document.body.classList.add('light');
+  else document.body.classList.add('dark');
+  ipcRenderer.send('theme', theme);
+}
+
+function applySettings() {
+  applyTheme(themeSelect.value);
+  const [c1, c2] = gradientSelect.value.split(',');
+  document.body.style.setProperty('--grad1', c1);
+  document.body.style.setProperty('--grad2', c2);
+  const [w, h] = sizeSelect.value.split(',').map(Number);
+  ipcRenderer.send('window:resize', { width: w, height: h });
+  const size = Number(fontSizeInput.value) || 16;
+  document.body.style.fontSize = size + 'px';
+}
+
+loadState();
+applySettings();
 
 minBtn.addEventListener('click', () => ipcRenderer.send('window:minimize'));
 maxBtn.addEventListener('click', () => ipcRenderer.send('window:maximize'));
@@ -105,6 +148,7 @@ function renderTab() {
     line.appendChild(res);
     container.appendChild(line);
   });
+  saveState();
 }
 
 function onInput(e) {
@@ -130,6 +174,7 @@ function onInput(e) {
   const res = e.target.parentNode.querySelector('.res');
   res.textContent = result;
   res.dataset.full = result;
+  saveState();
 }
 
 function onKey(e) {
@@ -148,6 +193,7 @@ function onKey(e) {
     const prev = container.querySelector(`.expr[data-index="${index - 1}"]`);
     prev.focus();
   }
+  saveState();
 }
 
 function placeCaretAtEnd(el) {
@@ -170,6 +216,7 @@ function renderTabMenu() {
       currentTab = idx;
       tabMenu.classList.add('hidden');
       renderTab();
+      saveState();
     });
       const edit = document.createElement('span');
       edit.className = 'tab-edit';
@@ -183,6 +230,7 @@ function renderTabMenu() {
           nameSpan.contentEditable = false;
           t.name = nameSpan.textContent.trim() || `Tab ${idx + 1}`;
           renderTabMenu();
+          saveState();
         };
         nameSpan.addEventListener('blur', finish, { once: true });
         nameSpan.addEventListener('keydown', (ev) => {
@@ -202,6 +250,7 @@ function renderTabMenu() {
         if (currentTab >= tabs.length) currentTab = tabs.length - 1;
         renderTab();
         renderTabMenu();
+        saveState();
       }
     });
     item.appendChild(nameSpan);
@@ -216,6 +265,7 @@ function renderTabMenu() {
     currentTab = tabs.length - 1;
     tabMenu.classList.add('hidden');
     renderTab();
+    saveState();
   });
   tabMenu.appendChild(newItem);
 }
@@ -231,26 +281,27 @@ settingsBtn.addEventListener('click', () => {
 });
 
 themeSelect.addEventListener('change', (e) => {
-  document.body.classList.remove('light', 'dark');
-  if (e.target.value === 'light') document.body.classList.add('light');
-  else document.body.classList.add('dark');
-  ipcRenderer.send('theme', e.target.value);
+  applyTheme(e.target.value);
+  saveState();
 });
 
 gradientSelect.addEventListener('change', (e) => {
   const [c1, c2] = e.target.value.split(',');
   document.body.style.setProperty('--grad1', c1);
   document.body.style.setProperty('--grad2', c2);
+  saveState();
 });
 
 sizeSelect.addEventListener('change', (e) => {
   const [w, h] = e.target.value.split(',').map(Number);
   ipcRenderer.send('window:resize', { width: w, height: h });
+  saveState();
 });
 
 fontSizeInput.addEventListener('change', (e) => {
   const size = Number(e.target.value) || 16;
   document.body.style.fontSize = size + 'px';
+  saveState();
 });
 
 renderTab();
