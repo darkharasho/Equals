@@ -4,6 +4,7 @@ const { ipcRenderer } = require('electron');
 let tabs = [{ name: 'Tab 1', lines: [''] }];
 let currentTab = 0;
 let lastKey = '';
+let lineResults = [];
 
 function getCaret(el) {
   const sel = window.getSelection();
@@ -129,7 +130,11 @@ function formatNumber(num, sym, decimals) {
 }
 
 function highlight(text) {
-  return text.replace(/([$€£]?\d+(?:\.\d+)?%?)/g, (match) => {
+  return text.replace(/#\d+|[$€£]?\d+(?:\.\d+)?%?/g, (match) => {
+    if (match.startsWith('#')) {
+      const n = match.slice(1);
+      return `<span class="rowref" data-ref="${n}">${match}</span>`;
+    }
     if (match.endsWith('%')) {
       const num = match.slice(0, -1);
       const decs = (num.split('.')[1] || '').length;
@@ -149,10 +154,15 @@ function highlight(text) {
   });
 }
 
-function compute(text) {
-  if (!text.trim()) return '';
+function compute(text, results) {
+  if (!text.trim()) return { display: '', value: null };
   const currencyMatch = text.match(/[$€£]/);
   let expr = text
+    .replace(/#(\d+)/g, (_, n) => {
+      const idx = Number(n) - 1;
+      const v = results[idx];
+      return typeof v === 'number' ? v : 0;
+    })
     .replace(/([0-9.]+)\s*([+\-])\s*([0-9.]+)%/g, (_, a, op, b) => `${a}${op}${a}*(${b}/100)`)
     .replace(/([0-9.]+)\s*([*/])\s*([0-9.]+)%/g, (_, a, op, b) => `${a}${op}(${b}/100)`)
     .replace(/(\d+(?:\.\d+)?)%/g, '($1/100)')
@@ -161,12 +171,44 @@ function compute(text) {
   try {
     const res = math.evaluate(expr);
     if (typeof res === 'number') {
-      return formatNumber(res, currencyMatch ? currencyMatch[0] : null, currencyMatch ? 2 : undefined);
+      const display = formatNumber(res, currencyMatch ? currencyMatch[0] : null, currencyMatch ? 2 : undefined);
+      return { display, value: res };
     }
-    return '';
+    return { display: '', value: null };
   } catch {
-    return '';
+    return { display: '', value: null };
   }
+}
+
+function bindRowRefs(el) {
+  el.querySelectorAll('.rowref').forEach(ref => {
+    ref.addEventListener('mouseenter', () => {
+      const n = Number(ref.dataset.ref) - 1;
+      const target = container.querySelector(`.res[data-index="${n}"]`);
+      if (target) target.classList.add('ref-hover');
+    });
+    ref.addEventListener('mouseleave', () => {
+      const n = Number(ref.dataset.ref) - 1;
+      const target = container.querySelector(`.res[data-index="${n}"]`);
+      if (target) target.classList.remove('ref-hover');
+    });
+  });
+}
+
+function recalc() {
+  const lines = tabs[currentTab].lines;
+  lineResults = [];
+  lines.forEach((text, idx) => {
+    const { display, value } = compute(text, lineResults);
+    const resEl = container.querySelector(`.res[data-index="${idx}"]`);
+    if (resEl) {
+      resEl.textContent = display;
+      resEl.dataset.full = display;
+    }
+    lineResults.push(value);
+  });
+  updateDivider();
+  saveState();
 }
 
 function showToast(msg) {
@@ -189,31 +231,41 @@ function updateDivider() {
 function renderTab() {
   container.innerHTML = '';
   const lines = tabs[currentTab].lines;
+  lineResults = [];
   lines.forEach((text, index) => {
     const line = document.createElement('div');
     line.className = 'line';
+    line.dataset.index = index;
+
+    const num = document.createElement('span');
+    num.className = 'line-num';
+    num.textContent = index + 1;
 
     const expr = document.createElement('span');
     expr.className = 'expr';
     expr.contentEditable = true;
     expr.dataset.index = index;
     expr.innerHTML = highlight(text);
+    bindRowRefs(expr);
     expr.addEventListener('input', onInput);
     expr.addEventListener('keydown', onKey);
 
     const res = document.createElement('span');
     res.className = 'res answer';
-    const result = compute(text);
-    res.textContent = result;
-    res.dataset.full = result;
+    res.dataset.index = index;
+    const { display, value } = compute(text, lineResults);
+    res.textContent = display;
+    res.dataset.full = display;
     res.addEventListener('click', () => {
       navigator.clipboard.writeText(res.dataset.full || '');
       showToast('Copied');
     });
 
+    line.appendChild(num);
     line.appendChild(expr);
     line.appendChild(res);
     container.appendChild(line);
+    lineResults.push(value);
   });
   updateDivider();
   saveState();
@@ -235,13 +287,9 @@ function onInput(e) {
   lastKey = '';
   tabs[currentTab].lines[index] = raw;
   e.target.innerHTML = highlight(raw);
+  bindRowRefs(e.target);
   setCaret(e.target, caret);
-  const result = compute(raw);
-  const res = e.target.parentNode.querySelector('.res');
-  res.textContent = result;
-  res.dataset.full = result;
-  updateDivider();
-  saveState();
+  recalc();
 }
 
 function onKey(e) {

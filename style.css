@@ -22,9 +22,11 @@ body {
   --answer-color: #ffb454;
   --percent-color: #98c379;
   --currency-color: #bb87f8;
+  --ref-color: #c678dd;
   --settings-bg: rgba(0,0,0,0.6);
   --settings-border: rgba(255,255,255,0.2);
-  --divider-color: rgba(255,255,255,0.1);
+  --divider-color: rgba(255,255,255,0.05);
+  --linenum-bg: rgba(255,255,255,0.05);
   border-image: linear-gradient(135deg, var(--grad1), var(--grad2)) 1;
   border-radius: 16px;
   overflow: hidden;
@@ -38,7 +40,9 @@ body.light {
   --currency-color: #6a1b9a;
   --settings-bg: rgba(255,255,255,0.7);
   --settings-border: rgba(0,0,0,0.2);
-  --divider-color: rgba(0,0,0,0.1);
+  --divider-color: rgba(0,0,0,0.15);
+  --linenum-bg: rgba(0,0,0,0.05);
+  --ref-color: #8e44ad;
   background: transparent;
 }
 
@@ -68,14 +72,32 @@ body.light {
   top: 0;
   bottom: 0;
   width: 1px;
-  background: var(--divider-color);
   left: var(--divider-left, 0);
   pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    var(--divider-color),
+    var(--divider-color) 3px,
+    transparent 3px,
+    transparent 6px
+  );
 }
 
 .line {
   display: flex;
   align-items: flex-start;
+}
+
+.line-num {
+  width: 20px;
+  text-align: right;
+  margin-right: 4px;
+  padding: 0 4px;
+  background: var(--linenum-bg);
+  user-select: none;
+  color: var(--text-color);
+  opacity: 0.8;
+  flex-shrink: 0;
 }
 
 .expr {
@@ -98,10 +120,15 @@ body.light {
   cursor: pointer;
 }
 
+.res.ref-hover {
+  text-decoration: underline;
+}
+
 .number { color: var(--number-color); }
 .answer { color: var(--answer-color); }
 .percent { color: var(--percent-color); }
 .currency { color: var(--currency-color); }
+.rowref { color: var(--ref-color); }
 
 #tabs {
   margin-right: 4px;
