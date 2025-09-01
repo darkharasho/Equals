@@ -322,7 +322,6 @@ body.light #tab-menu div:hover {
 
 #window-controls {
   display: flex;
-  margin-left: auto;
 }
 
 .window-btn {
