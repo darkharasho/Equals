@@ -29,9 +29,12 @@ function setupDOM() {
       <option value="#a,#b"></option>
       <option value="#000000,#ffffff"></option>
     </select>
-    <select id="size-select">
-      <option value="300,300"></option>
-    </select>
+      <select id="size-select">
+        <option value="250,250"></option>
+        <option value="300,300"></option>
+        <option value="400,400"></option>
+        <option value="custom"></option>
+      </select>
     <input id="font-size" />
     <select id="angle-mode">
       <option value="deg"></option>
