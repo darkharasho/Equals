@@ -119,8 +119,9 @@ test('changing gradient updates select background', () => {
   const select = document.getElementById('gradient-select');
   select.value = '#000000,#ffffff';
   select.dispatchEvent(new Event('change'));
-  expect(select.style.background).toContain('#000000');
-  expect(select.style.background).toContain('#ffffff');
+  expect(select.style.backgroundImage).toContain('#000000');
+  expect(select.style.backgroundImage).toContain('#ffffff');
+  expect(select.style.backgroundColor).toBe('var(--settings-bg)');
 });
 
 test('applyTheme updates body classes and notifies main process', () => {

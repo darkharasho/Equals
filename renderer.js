@@ -114,7 +114,8 @@ function updateGradient(value) {
   document.body.style.setProperty('--grad1', c1);
   document.body.style.setProperty('--grad2', c2);
   const grad = `linear-gradient(to right, ${c1}, ${c2})`;
-  gradientSelect.style.background = grad;
+  gradientSelect.style.backgroundImage = grad;
+  gradientSelect.style.backgroundColor = 'var(--settings-bg)';
   const avg = (getLuma(c1) + getLuma(c2)) / 2;
   gradientSelect.style.color = avg > 128 ? '#000' : '#fff';
   if (gradientPreview) gradientPreview.style.background = grad;
