@@ -179,6 +179,40 @@ function formatDuration(mins) {
   return (sign < 0 ? '-' : '') + parts.join(' ');
 }
 
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+function dateToDays(d) {
+  if (!(d instanceof Date)) d = new Date(d);
+  d.setHours(0, 0, 0, 0);
+  return Math.floor(d.getTime() / MS_PER_DAY);
+}
+
+function daysToDate(days) {
+  const d = new Date(days * MS_PER_DAY);
+  return d.toISOString().slice(0, 10);
+}
+
+function formatDays(days) {
+  const n = Math.round(days);
+  return `${n} day${Math.abs(n) === 1 ? '' : 's'}`;
+}
+
+function replaceDateTokens(expr, state) {
+  return expr
+    .replace(/\btoday\b/gi, () => {
+      state.dates++;
+      return dateToDays(new Date());
+    })
+    .replace(/\b(\d{4}-\d{2}-\d{2})\b/g, (_, d) => {
+      state.dates++;
+      return dateToDays(d);
+    })
+    .replace(/(\d+)\s*(day|days|d)\b/gi, (_, n) => {
+      state.durations++;
+      return n;
+    });
+}
+
 function replaceTimeTokens(expr, state) {
   return expr
     .replace(/\b(\d{1,2}:\d{2}(?:am|pm)?)\b/gi, (_, t) => {
@@ -223,7 +257,13 @@ function highlight(text, idx = 0) {
   }
   const safe = esc(text);
   const lastIdx = findLastIndex(idx);
-  return safe.replace(/\$[a-zA-Z_]\w*|""|\d{1,2}:\d{2}(?:am|pm)?|\d+\s*(?:hr|h|m|min|s|sec)|\b(?:asin|sin)\b|\d+(?:\.\d+)?\s*(?:cm|mm|km|m|in|inch|ft|yd|mi|g|kg|mg|lb|oz|l|ml|gal|F|C|K)|\b(?:cm|mm|km|m|in|inch|ft|yd|mi|g|kg|mg|lb|oz|l|ml|gal|F|C|K)\b|[$€£]?\d+(?:\.\d+)?%?/gi, (match) => {
+  return safe.replace(/\$[a-zA-Z_]\w*|""|\d{1,2}:\d{2}(?:am|pm)?|\d{4}-\d{2}-\d{2}|\btoday\b|\d+\s*(?:day|days|d|hr|h|m|min|s|sec)|\b(?:asin|sin)\b|\d+(?:\.\d+)?\s*(?:cm|mm|km|m|in|inch|ft|yd|mi|g|kg|mg|lb|oz|l|ml|gal|F|C|K)|\b(?:cm|mm|km|m|in|inch|ft|yd|mi|g|kg|mg|lb|oz|l|ml|gal|F|C|K)\b|[$€£]?\d+(?:\.\d+)?%?/gi, (match) => {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(match) || /^today$/i.test(match)) {
+      return `<span class="date">${match}</span>`;
+    }
+    if (/^\d+\s*(?:day|days|d)$/i.test(match)) {
+      return `<span class="time">${match}</span>`;
+    }
     if (/^(?:asin|sin)$/i.test(match)) {
       return `<span class="trig">${match}</span>`;
     }
@@ -261,7 +301,7 @@ function highlight(text, idx = 0) {
 }
 
 function compute(text, results, metas) {
-  if (!text.trim() || /^\s*#\s/.test(text)) return { display: '', value: null, sym: null, decimals: undefined, assign: null, isTime: false, timeOfDay: false };
+  if (!text.trim() || /^\s*#\s/.test(text)) return { display: '', value: null, sym: null, decimals: undefined, assign: null, isTime: false, timeOfDay: false, isDate: false, isDay: false };
   const assign = text.match(/^\s*\$([a-zA-Z_]\w*)\s*=\s*(.+)$/);
   let exprText = assign ? assign[2] : text;
   let sym = null;
@@ -269,6 +309,7 @@ function compute(text, results, metas) {
   exprText = exprText.replace(/([$€£])(?=\d)/g, m => { sym = sym || m; decimals = 2; return ''; });
   let last = null;
   const timeState = { hasTime: false, hasTimeOfDay: false };
+  const dateState = { dates: 0, durations: 0 };
   for (let i = metas.length - 1; i >= 0; i--) {
     const m = metas[i];
     if (m && typeof m.value === 'number') { last = m; break; }
@@ -276,7 +317,11 @@ function compute(text, results, metas) {
   exprText = exprText
     .replace(/""/g, () => {
       if (!sym && last && last.sym) { sym = last.sym; decimals = last.decimals; }
-      if (last && last.isTime) { timeState.hasTime = true; if (last.timeOfDay) timeState.hasTimeOfDay = true; }
+      if (last) {
+        if (last.isTime) { timeState.hasTime = true; if (last.timeOfDay) timeState.hasTimeOfDay = true; }
+        if (last.isDate) dateState.dates++;
+        if (last.isDay) dateState.durations++;
+      }
       return last ? last.value : 0;
     })
     .replace(/\$([a-zA-Z_]\w*)/g, (_, n) => {
@@ -284,11 +329,14 @@ function compute(text, results, metas) {
       if (v) {
         if (!sym && v.sym) { sym = v.sym; decimals = v.decimals; }
         if (v.isTime) { timeState.hasTime = true; if (v.timeOfDay) timeState.hasTimeOfDay = true; }
+        if (v.isDate) dateState.dates++;
+        if (v.isDay) dateState.durations++;
         return v.value;
       }
       return 0;
     });
 
+  exprText = replaceDateTokens(exprText, dateState);
   exprText = replaceTimeTokens(exprText, timeState)
     .replace(/([0-9.]+)\s*([+\-])\s*([0-9.]+)%/g, (_, a, op, b) => `${a}${op}${a}*(${b}/100)`)
     .replace(/([0-9.]+)\s*([*/])\s*([0-9.]+)%/g, (_, a, op, b) => `${a}${op}(${b}/100)`)
@@ -312,23 +360,35 @@ function compute(text, results, metas) {
     const res = math.evaluate(exprText, scope);
     if (res && res.isUnit) {
       const display = res.toString();
-      return { display, value: res.toString(), sym: null, decimals: undefined, assign: assign ? assign[1] : null, isTime: false, timeOfDay: false };
+      return { display, value: res.toString(), sym: null, decimals: undefined, assign: assign ? assign[1] : null, isTime: false, timeOfDay: false, isDate: false, isDay: false };
     }
     if (typeof res === 'number') {
+      if (dateState.dates || dateState.durations) {
+        if (dateState.dates > 1 && dateState.durations === 0) {
+          const display = formatDays(res);
+          return { display, value: res, sym: null, decimals: undefined, assign: assign ? assign[1] : null, isTime: false, timeOfDay: false, isDate: false, isDay: true };
+        }
+        if (dateState.dates) {
+          const display = daysToDate(res);
+          return { display, value: res, sym: null, decimals: undefined, assign: assign ? assign[1] : null, isTime: false, timeOfDay: false, isDate: true, isDay: false };
+        }
+        const display = formatDays(res);
+        return { display, value: res, sym: null, decimals: undefined, assign: assign ? assign[1] : null, isTime: false, timeOfDay: false, isDate: false, isDay: true };
+      }
       if (timeState.hasTime) {
         if (timeState.hasTimeOfDay) {
           const display = formatTimeOfDay(res);
-          return { display, value: res, sym: null, decimals: undefined, assign: assign ? assign[1] : null, isTime: true, timeOfDay: true };
+          return { display, value: res, sym: null, decimals: undefined, assign: assign ? assign[1] : null, isTime: true, timeOfDay: true, isDate: false, isDay: false };
         }
         const display = formatDuration(res);
-        return { display, value: res, sym: null, decimals: undefined, assign: assign ? assign[1] : null, isTime: true, timeOfDay: false };
+        return { display, value: res, sym: null, decimals: undefined, assign: assign ? assign[1] : null, isTime: true, timeOfDay: false, isDate: false, isDay: false };
       }
       const display = formatNumber(res, sym, sym ? 2 : decimals);
-      return { display, value: res, sym, decimals: sym ? 2 : decimals, assign: assign ? assign[1] : null, isTime: false, timeOfDay: false };
+      return { display, value: res, sym, decimals: sym ? 2 : decimals, assign: assign ? assign[1] : null, isTime: false, timeOfDay: false, isDate: false, isDay: false };
     }
-    return { display: '', value: null, sym: null, decimals: undefined, assign: null, isTime: false, timeOfDay: false };
+    return { display: '', value: null, sym: null, decimals: undefined, assign: null, isTime: false, timeOfDay: false, isDate: false, isDay: false };
   } catch {
-    return { display: '', value: null, sym: null, decimals: undefined, assign: null, isTime: false, timeOfDay: false };
+    return { display: '', value: null, sym: null, decimals: undefined, assign: null, isTime: false, timeOfDay: false, isDate: false, isDay: false };
   }
 }
 
@@ -338,21 +398,21 @@ function recalc(focusIdx = null, caretPos = null) {
   lineMeta = [];
   vars = {};
   lines.forEach((text, idx) => {
-    const { display, value, sym, decimals, assign, isTime, timeOfDay } = compute(text, lineResults, lineMeta);
+    const { display, value, sym, decimals, assign, isTime, timeOfDay, isDate, isDay } = compute(text, lineResults, lineMeta);
     const resEl = container.querySelector(`.res[data-index="${idx}"]`);
     const exprEl = container.querySelector(`.expr[data-index="${idx}"]`);
     if (resEl) {
       resEl.textContent = display;
       resEl.dataset.full = display;
-      resEl.className = `res ${isTime ? 'time' : 'answer'}`;
+      resEl.className = `res ${isTime || isDay ? 'time' : isDate ? 'date' : 'answer'}`;
     }
     if (exprEl) {
       exprEl.innerHTML = highlight(text, idx);
       attachRefEvents(exprEl);
     }
     lineResults.push(value);
-    lineMeta.push({ value, sym, decimals, display, isTime, timeOfDay });
-    if (assign) vars[assign] = { value, sym, decimals, display, line: idx, isTime, timeOfDay };
+    lineMeta.push({ value, sym, decimals, display, isTime, timeOfDay, isDate, isDay });
+    if (assign) vars[assign] = { value, sym, decimals, display, line: idx, isTime, timeOfDay, isDate, isDay };
   });
   if (focusIdx !== null && caretPos !== null) {
     const expr = container.querySelector(`.expr[data-index="${focusIdx}"]`);
@@ -432,10 +492,10 @@ function renderTab() {
   lineMeta = [];
   vars = {};
   lines.forEach((text, index) => {
-    const { display, value, sym, decimals, assign, isTime, timeOfDay } = compute(text, lineResults, lineMeta);
+    const { display, value, sym, decimals, assign, isTime, timeOfDay, isDate, isDay } = compute(text, lineResults, lineMeta);
     lineResults.push(value);
-    lineMeta.push({ value, sym, decimals, display, isTime, timeOfDay });
-    if (assign) vars[assign] = { value, sym, decimals, display, line: index, isTime, timeOfDay };
+    lineMeta.push({ value, sym, decimals, display, isTime, timeOfDay, isDate, isDay });
+    if (assign) vars[assign] = { value, sym, decimals, display, line: index, isTime, timeOfDay, isDate, isDay };
 
     const line = document.createElement('div');
     line.className = 'line';
@@ -451,7 +511,7 @@ function renderTab() {
     attachRefEvents(expr);
 
     const res = document.createElement('span');
-    res.className = `res ${isTime ? 'time' : 'answer'}`;
+    res.className = `res ${isTime || isDay ? 'time' : isDate ? 'date' : 'answer'}`;
     res.dataset.index = index;
     res.contentEditable = false;
     res.textContent = display;

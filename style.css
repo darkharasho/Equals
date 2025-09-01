@@ -27,6 +27,7 @@ body {
   --time-color: #e06c75;
   --trig-color: #ff6bcb;
   --unit-color: #9ece6a;
+  --date-color: #e0c074;
   --settings-bg: rgba(16,16,16,0.9);
   --settings-border: rgba(255,255,255,0.1);
   --divider-color: rgba(255,255,255,0.05);
@@ -47,6 +48,7 @@ body.light {
   --time-color: #d32f2f;
   --trig-color: #d23669;
   --unit-color: #6e9e00;
+  --date-color: #b58400;
   --settings-bg: rgba(255,255,255,0.8);
   --settings-border: rgba(0,0,0,0.1);
   --divider-color: rgba(0,0,0,0.15);
@@ -135,7 +137,8 @@ body.light {
 .variable,
 .time,
 .last,
-.unit {
+.unit,
+.date {
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
@@ -196,6 +199,14 @@ body.light {
     135deg,
     color-mix(in srgb, var(--time-color) 70%, white),
     var(--time-color)
+  );
+}
+
+.date {
+  background-image: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--date-color) 70%, white),
+    var(--date-color)
   );
 }
 
