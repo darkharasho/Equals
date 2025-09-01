@@ -85,7 +85,7 @@ function saveState() {
   const settings = {
     theme: themeSelect.value,
     gradient: gradientSelect.value,
-    syntax: syntaxSelect ? syntaxSelect.value : '#bb87f8,#7aa2f7',
+    syntax: syntaxSelect ? syntaxSelect.value : 'default',
     size: sizeSelect.value,
     fontSize: fontSizeInput.value,
     angleMode: angleModeSelect.value
@@ -101,7 +101,7 @@ function loadState() {
     if (saved.settings) {
       themeSelect.value = saved.settings.theme || 'dark';
       gradientSelect.value = saved.settings.gradient || '#bb87f8,#7aa2f7';
-      if (syntaxSelect) syntaxSelect.value = saved.settings.syntax || '#bb87f8,#7aa2f7';
+      if (syntaxSelect) syntaxSelect.value = saved.settings.syntax || 'default';
       if (saved.settings.size && saved.settings.size.includes(',')) {
         sizeSelect.value = saved.settings.size;
       } else if (saved.settings.size === 'custom') {
@@ -127,7 +127,7 @@ function updateGradient(value) {
   document.body.style.setProperty('--grad1', c1);
   document.body.style.setProperty('--grad2', c2);
   const grad = `linear-gradient(to right, ${c1}, ${c2})`;
-  gradientSelect.style.backgroundImage = grad;
+  gradientSelect.style.backgroundImage = '';
   gradientSelect.style.backgroundColor = 'var(--settings-bg)';
   gradientSelect.style.color = '#fff';
   if (gradientPreview) gradientPreview.style.background = grad;
@@ -151,6 +151,32 @@ function shadeColor(c, w) {
 }
 
 function updateSyntaxGradient(value) {
+  if (value === 'default') {
+    const vars = {
+      '--text-color': '#eaeaea',
+      '--number-color': '#7aa2f7',
+      '--answer-color': '#ffb454',
+      '--percent-color': '#56b6c2',
+      '--currency-color': '#bb87f8',
+      '--var-color': '#c678dd',
+      '--range-color': '#00b0ff',
+      '--comment-color': '#6a9955',
+      '--time-color': '#e06c75',
+      '--trig-color': '#ff6bcb',
+      '--unit-color': '#9ece6a',
+      '--date-color': '#e0c074'
+    };
+    for (const [k, v] of Object.entries(vars)) {
+      document.body.style.setProperty(k, v);
+    }
+    syntaxSelect.style.backgroundImage = '';
+    syntaxSelect.style.backgroundColor = 'var(--settings-bg)';
+    syntaxSelect.style.color = '#fff';
+    if (syntaxPreview)
+      syntaxPreview.style.background = 'linear-gradient(to right, #7aa2f7, #ffb454, #6a9955, #ff6bcb)';
+    return;
+  }
+
   const [c1, c2] = value.split(',');
   const mix = (w) => mixColors(c1, c2, w);
   const vars = {
@@ -171,7 +197,7 @@ function updateSyntaxGradient(value) {
     document.body.style.setProperty(k, v);
   }
   const grad = `linear-gradient(to right, ${c1}, ${c2})`;
-  syntaxSelect.style.backgroundImage = grad;
+  syntaxSelect.style.backgroundImage = '';
   syntaxSelect.style.backgroundColor = 'var(--settings-bg)';
   syntaxSelect.style.color = '#fff';
   if (syntaxPreview) syntaxPreview.style.background = grad;

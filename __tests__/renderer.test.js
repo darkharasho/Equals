@@ -118,12 +118,11 @@ test('loadState restores settings from localStorage', () => {
   expect(document.getElementById('angle-mode').value).toBe('rad');
 });
 
-test('changing gradient updates select background', () => {
+test('changing gradient updates preview without styling select', () => {
   const select = document.getElementById('gradient-select');
   select.value = '#000000,#ffffff';
   select.dispatchEvent(new Event('change'));
-  expect(select.style.backgroundImage).toContain('#000000');
-  expect(select.style.backgroundImage).toContain('#ffffff');
+  expect(select.style.backgroundImage).toBe('');
   expect(select.style.backgroundColor).toBe('var(--settings-bg)');
   expect(select.style.color).toBe('rgb(255, 255, 255)');
   Array.from(select.options).forEach(opt => expect(opt.style.color).toBe(''));
