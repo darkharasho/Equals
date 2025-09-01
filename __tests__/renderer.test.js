@@ -186,3 +186,12 @@ test('enter on empty line inserts a new line below', () => {
   );
   expect(document.activeElement.dataset.index).toBe('2');
 });
+
+test('line deletion does not create an extra blank line', () => {
+  const container = document.getElementById('container');
+  const expr = container.querySelector('.expr[data-index="0"]');
+  expr.textContent = '\n';
+  expr.dispatchEvent(new Event('input', { bubbles: true }));
+  const lines = container.querySelectorAll('.line');
+  expect(lines.length).toBe(1);
+});

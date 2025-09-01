@@ -266,8 +266,7 @@ function expandRanges(expr, results, vars) {
       const step = start <= end ? 1 : -1;
       const arr = [];
       for (let i = start; step > 0 ? i <= end : i >= end; i += step) {
-        const v = results[i - 1];
-        arr.push(typeof v === 'number' ? v : 0);
+        arr.push(i);
       }
       return `[${arr.join(',')}]`;
     })
@@ -581,6 +580,8 @@ function onInput(e) {
   raw = raw.replace(/([$€£])(\d+)(\.?)(\d*)/g, (_, sym, intp, dot, dec) => {
     return sym + intp + (dot ? '.' + dec.slice(0, 2) : '');
   });
+  // strip a trailing newline inserted by contentEditable
+  raw = raw.replace(/\r?\n$/, '');
   const parts = raw.split(/\n/);
   if (parts.length > 1) {
     tabs[currentTab].lines.splice(index, 1, ...parts);
