@@ -14,7 +14,8 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "mathjs": "^14.6.0"
+    "mathjs": "^14.6.0",
+    "marked": "^16.2.1"
   },
   "devDependencies": {
     "adm-zip": "^0.5.16",

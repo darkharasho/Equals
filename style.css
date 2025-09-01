@@ -323,6 +323,7 @@ body.light #tab-menu div:hover {
 
 #window-controls {
   display: flex;
+  margin-left: auto;
 }
 
 .window-btn {
@@ -472,5 +473,44 @@ body.light #toast {
 
 #toast.show {
   opacity: 1;
+}
+
+#toc {
+  padding: 8px;
+}
+
+#toc h2 {
+  margin: 0 0 8px;
+  font-size: 16px;
+}
+
+.toc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.toc-list a {
+  display: block;
+  padding: 6px 10px;
+  border-radius: 4px;
+  text-decoration: none;
+  color: var(--text-color);
+  background: rgba(255,255,255,0.05);
+}
+
+body.light .toc-list a {
+  background: rgba(0,0,0,0.05);
+}
+
+.toc-list a:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+body.light .toc-list a:hover {
+  background: rgba(0,0,0,0.1);
 }
 

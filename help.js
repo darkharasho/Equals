@@ -1,6 +1,7 @@
 const { ipcRenderer } = require('electron');
 const fs = require('fs');
 const path = require('path');
+const { marked } = require('marked');
 
 const container = document.getElementById('container');
 const minBtn = document.getElementById('min-btn');
@@ -21,33 +22,14 @@ closeBtn.addEventListener('click', () => ipcRenderer.send('window:close'));
 });
 
 function mdToHtml(md) {
-  const lines = md.split('\n');
-  let html = '';
-  let inList = false;
-  for (const line of lines) {
-    if (line.startsWith('### ')) html += `<h3>${line.slice(4)}</h3>`;
-    else if (line.startsWith('## ')) html += `<h2>${line.slice(3)}</h2>`;
-    else if (line.startsWith('# ')) html += `<h1>${line.slice(2)}</h1>`;
-    else if (line.startsWith('- ')) {
-      if (!inList) { html += '<ul>'; inList = true; }
-      html += `<li>${line.slice(2)}</li>`;
-    } else if (line.trim() === '') {
-      if (inList) { html += '</ul>'; inList = false; }
-      html += '<br />';
-    } else {
-      if (inList) { html += '</ul>'; inList = false; }
-      html += `<p>${line}</p>`;
-    }
-  }
-  if (inList) html += '</ul>';
-  return html.replace(/\[(.*?)\]\((.*?)\)/gim, '<a href="$2">$1</a>');
+  return marked.parse(md);
 }
 
 function showIndex() {
   const docsDir = path.join(__dirname, 'docs');
   const files = fs.readdirSync(docsDir).filter(f => f.endsWith('.md')).sort();
   const list = files.map(f => `<li><a href="#" data-file="${f}">${f.replace('.md','')}</a></li>`).join('');
-  container.innerHTML = `<ul>${list}</ul>`;
+  container.innerHTML = `<nav id="toc"><h2>Help Topics</h2><ul class="toc-list">${list}</ul></nav>`;
   container.querySelectorAll('a').forEach(a => {
     a.addEventListener('click', e => {
       e.preventDefault();
