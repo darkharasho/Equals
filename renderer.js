@@ -98,7 +98,13 @@ function loadState() {
     if (saved.settings) {
       themeSelect.value = saved.settings.theme || 'dark';
       gradientSelect.value = saved.settings.gradient || '#bb87f8,#7aa2f7';
-      sizeSelect.value = (saved.settings.size && saved.settings.size.includes(',')) ? saved.settings.size : '250,250';
+      if (saved.settings.size && saved.settings.size.includes(',')) {
+        sizeSelect.value = saved.settings.size;
+      } else if (saved.settings.size === 'custom') {
+        sizeSelect.value = 'custom';
+      } else {
+        sizeSelect.value = '250,250';
+      }
       fontSizeInput.value = saved.settings.fontSize || 16;
       angleModeSelect.value = saved.settings.angleMode || 'deg';
     }
@@ -851,7 +857,21 @@ angleModeSelect.addEventListener('change', () => {
 });
 
 renderTab();
-window.addEventListener('resize', updateDivider);
+
+function handleWindowResize() {
+  const sizeValue = `${window.innerWidth},${window.innerHeight}`;
+  const values = Array.from(sizeSelect.options)
+    .map(o => o.value)
+    .filter(v => v.includes(','));
+  if (values.includes(sizeValue)) {
+    sizeSelect.value = sizeValue;
+  } else {
+    sizeSelect.value = 'custom';
+  }
+  updateDivider();
+}
+
+window.addEventListener('resize', handleWindowResize);
 
 module.exports = {
   deg2rad,

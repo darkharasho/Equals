@@ -7,7 +7,7 @@ function createWindow() {
     height: 250,
     minWidth: 250,
     minHeight: 250,
-    resizable: false,
+    resizable: true,
     frame: false,
     transparent: true,
     titleBarStyle: 'hidden',
@@ -92,9 +92,7 @@ ipcMain.on('window:resize', (e, size) => {
   const h = Number(size?.height);
   if (Number.isFinite(w) && Number.isFinite(h)) {
     win.setResizable(true);
-    win.setMinimumSize(w, h);
     win.setSize(w, h);
-    setTimeout(() => win.setResizable(false), 0);
   }
 });
 
