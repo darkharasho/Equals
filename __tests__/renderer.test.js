@@ -163,6 +163,20 @@ test('compute formats repeating decimals with overline', () => {
   expect(seventh.display).toBe(`0.14${over('2857')}`);
 });
 
+test('compute truncates non-repeating decimals to two digits', () => {
+  const res = renderer.compute('sqrt(2)', [], []);
+  expect(res.display).toBe('1.41');
+});
+
+test('unit conversions shorten decimals and clean up results', () => {
+  const yard = renderer.compute('30in to yard', [], []);
+  const feet = renderer.compute('12in to feet', [], []);
+  const over = (s) => s.split('').map(d => d + '\u0305').join('');
+  expect(yard.display).toBe(`0.83${over('3')} yd`);
+  expect(feet.display).toBe('1 ft');
+});
+
+
 test('compute handles line and variable ranges with aggregate helpers', () => {
   const lineResults = [1, 2, 3, 4, 5];
   const avg = renderer.compute('avg(1..5)', lineResults, []);

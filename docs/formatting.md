@@ -13,3 +13,5 @@ Numeric results are automatically formatted with the appropriate number of
 fractional digits based on the input. Repeating decimals are shortened to the
 first two digits with the repeating sequence shown using an overline, for
 example `1/3` → `0.3̅3̅`.
+
+Non-repeating decimals are truncated to two places, e.g. `sqrt(2)` → `1.41`. Unit conversions follow the same rules so `30in to yard` becomes `0.833̅ yd` and exact results like `12in to feet` render as `1 ft`.

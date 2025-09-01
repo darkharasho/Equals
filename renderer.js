@@ -192,6 +192,7 @@ function formatRepeating(num) {
     const sign = frac.s < 0 ? '-' : '';
     let n = Math.abs(Number(frac.n));
     const d = Number(frac.d);
+    if (d > 1000) return null;
     const intPart = Math.floor(n / d);
     let rem = n % d;
     const seen = {};
@@ -240,6 +241,12 @@ function formatRepeating(num) {
   } catch {
     return null;
   }
+}
+
+function formatTruncate(num, digits = 2) {
+  const factor = Math.pow(10, digits);
+  const truncated = Math.trunc(num * factor) / factor;
+  return formatNumber(truncated, null, undefined);
 }
 
 function timeToMinutes(str) {
@@ -498,9 +505,21 @@ function compute(text, results, metas) {
     }
     const res = math.evaluate(exprText, scope);
     if (res && res.isUnit) {
-      const display = res.toString();
+      const unitName = res.formatUnits();
+      let num = res.toNumber(unitName);
+      if (Math.abs(num - Math.round(num)) < 1e-10) num = Math.round(num);
+      const unitMap = { feet: 'ft', foot: 'ft', inches: 'in', inch: 'in', yards: 'yd', yard: 'yd', miles: 'mi', mile: 'mi', pounds: 'lb', pound: 'lb', ounces: 'oz', ounce: 'oz', liters: 'l', litres: 'l', liter: 'l', litre: 'l', milliliters: 'ml', millilitres: 'ml', milliliter: 'ml', millilitre: 'ml', grams: 'g', gram: 'g', kilograms: 'kg', kilogram: 'kg', milligrams: 'mg', milligram: 'mg', centimeters: 'cm', centimeter: 'cm', millimeters: 'mm', millimeter: 'mm', kilometers: 'km', kilometer: 'km', gallons: 'gal', gallon: 'gal' };
+      const unitStr = unitMap[unitName] || unitName;
+      let numDisplay;
+      if (!sym && decimals === undefined) {
+        numDisplay = formatRepeating(num) || formatTruncate(num);
+      } else {
+        numDisplay = formatNumber(num, sym, sym ? 2 : decimals);
+      }
+      const display = numDisplay + ' ' + unitStr;
       return { display, value: res.toString(), sym: null, decimals: undefined, assign: assign ? assign[1] : null, isTime: false, timeOfDay: false, isDate: false, isDay: false };
     }
+    
     if (typeof res === 'number') {
       if (dateState.dates || dateState.durations) {
         if (dateState.dates > 1 && dateState.durations === 0) {
@@ -524,11 +543,16 @@ function compute(text, results, metas) {
       }
       let display;
       if (!sym && decimals === undefined) {
-        display = formatRepeating(res) || formatNumber(res, null, undefined);
+        let num = res;
+        if (Math.abs(num - Math.round(num)) < 1e-10) num = Math.round(num);
+        display = formatRepeating(num) || formatTruncate(num);
+        return { display, value: num, sym, decimals: sym ? 2 : decimals, assign: assign ? assign[1] : null, isTime: false, timeOfDay: false, isDate: false, isDay: false };
       } else {
-        display = formatNumber(res, sym, sym ? 2 : decimals);
+        let num = res;
+        if (Math.abs(num - Math.round(num)) < 1e-10) num = Math.round(num);
+        display = formatNumber(num, sym, sym ? 2 : decimals);
+        return { display, value: num, sym, decimals: sym ? 2 : decimals, assign: assign ? assign[1] : null, isTime: false, timeOfDay: false, isDate: false, isDay: false };
       }
-      return { display, value: res, sym, decimals: sym ? 2 : decimals, assign: assign ? assign[1] : null, isTime: false, timeOfDay: false, isDate: false, isDay: false };
     }
     return { display: '', value: null, sym: null, decimals: undefined, assign: null, isTime: false, timeOfDay: false, isDate: false, isDay: false };
   } catch {
