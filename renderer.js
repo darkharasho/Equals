@@ -124,6 +124,15 @@ minBtn.addEventListener('click', () => ipcRenderer.send('window:minimize'));
 maxBtn.addEventListener('click', () => ipcRenderer.send('window:maximize'));
 closeBtn.addEventListener('click', () => ipcRenderer.send('window:close'));
 
+[minBtn, maxBtn, closeBtn].forEach(btn => {
+  btn.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      btn.click();
+    }
+  });
+});
+
 const currencyMap = { '$': 'USD', '€': 'EUR', '£': 'GBP' };
 
 function deg2rad(deg) { return deg * Math.PI / 180; }
@@ -738,6 +747,12 @@ tabBtn.addEventListener('click', () => {
   tabMenu.classList.toggle('hidden');
   renderTabMenu();
 });
+tabBtn.addEventListener('keydown', e => {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    tabBtn.click();
+  }
+});
 
 document.addEventListener('click', (e) => {
   if (!tabMenu.classList.contains('hidden') && !tabBtn.contains(e.target) && !tabMenu.contains(e.target)) {
@@ -749,6 +764,12 @@ settingsBtn.addEventListener('click', () => {
   const showing = !settingsView.classList.toggle('hidden');
   container.classList.toggle('hidden', showing);
   if (!showing) updateDivider();
+});
+settingsBtn.addEventListener('keydown', e => {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    settingsBtn.click();
+  }
 });
 
 themeSelect.addEventListener('change', (e) => {

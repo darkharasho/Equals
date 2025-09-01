@@ -264,6 +264,8 @@ body.light {
   cursor: pointer;
   font-size: 12px;
   color: #fff;
+  border: none;
+  padding: 0;
 }
 
 body.light #tab-btn,
@@ -333,6 +335,9 @@ body.light #tab-menu div:hover {
   font-size: 12px;
   margin-left: 4px;
   border-radius: 2px;
+  background: transparent;
+  border: none;
+  padding: 0;
 }
 
 body.light .window-btn {
