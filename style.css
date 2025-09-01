@@ -247,7 +247,6 @@ body.light {
 
 #tabs {
   margin-right: 4px;
-  margin-left: auto;
   position: relative;
   display: flex;
   align-items: center;
@@ -357,7 +356,8 @@ body.light .window-btn:hover {
 
 #logo {
   font-size: 14px;
-  margin-right: 4px;
+  margin-right: auto;
+  padding-right: 4px;
   user-select: none;
 }
 
