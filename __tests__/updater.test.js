@@ -23,9 +23,18 @@ test('initAutoUpdate checks for updates and prompts to install', async () => {
   });
   expect(updater.checkForUpdatesAndNotify).toHaveBeenCalled();
 
-  const handler = updater.on.mock.calls.find(([e]) => e === 'update-downloaded')[1];
-  await handler();
+  const calls = updater.on.mock.calls;
+
+  const downloadHandler = calls.find(([e]) => e === 'update-downloaded')[1];
+  await downloadHandler();
   expect(mockShowMessageBox).toHaveBeenCalled();
   expect(updater.quitAndInstall).toHaveBeenCalled();
+
+  const errorHandler = calls.find(([e]) => e === 'error')[1];
+  const mockConsoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+  const err = new Error('boom');
+  errorHandler(err);
+  expect(mockConsoleError).toHaveBeenCalledWith('Auto update error:', err);
+  mockConsoleError.mockRestore();
 });
 

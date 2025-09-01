@@ -1,6 +1,15 @@
 const { autoUpdater } = require('electron-updater');
 const { dialog } = require('electron');
 
+let log;
+try {
+  // Use electron-log when available to surface errors in packaged builds
+  log = require('electron-log');
+} catch (err) {
+  // Fallback to console.error in development or when electron-log isn't installed
+  log = console;
+}
+
 function initAutoUpdate() {
   autoUpdater.forceDevUpdateConfig = true;
   autoUpdater.setFeedURL({
@@ -22,6 +31,11 @@ function initAutoUpdate() {
           autoUpdater.quitAndInstall();
         }
       });
+  });
+
+  // surface errors so they are visible in builds
+  autoUpdater.on('error', (error) => {
+    log.error('Auto update error:', error);
   });
 
   // check GitHub for updates and download the latest installer
