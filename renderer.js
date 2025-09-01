@@ -182,6 +182,66 @@ function formatNumber(num, sym, decimals) {
   }
 }
 
+function formatRepeating(num) {
+  try {
+    const frac = math.fraction(num);
+    let temp = Number(frac.d);
+    while (temp % 2 === 0) temp /= 2;
+    while (temp % 5 === 0) temp /= 5;
+    if (temp === 1) return null;
+    const sign = frac.s < 0 ? '-' : '';
+    let n = Math.abs(Number(frac.n));
+    const d = Number(frac.d);
+    const intPart = Math.floor(n / d);
+    let rem = n % d;
+    const seen = {};
+    const digits = [];
+    let idx = 0;
+    let repStart = -1;
+    while (rem !== 0) {
+      if (seen[rem] !== undefined) { repStart = seen[rem]; break; }
+      seen[rem] = idx;
+      rem *= 10;
+      digits.push(Math.floor(rem / d));
+      rem %= d;
+      idx++;
+    }
+    if (repStart === -1) return null;
+    const nonRep = digits.slice(0, repStart).join('');
+    const rep = digits.slice(repStart).join('');
+    const visible = 2;
+    let first = '';
+    if (nonRep.length >= visible) {
+      first = nonRep.slice(0, visible);
+    } else {
+      first = nonRep;
+      const need = visible - nonRep.length;
+      const repNeeded = rep.repeat(Math.ceil(need / rep.length));
+      first += repNeeded.slice(0, need);
+    }
+    const usedFromRep = Math.max(0, visible - nonRep.length);
+    let leftover;
+    if (rep.length > usedFromRep) {
+      leftover = rep.slice(usedFromRep);
+    } else {
+      leftover = nonRep.length > 0 ? rep : '';
+    }
+    let dec = first;
+    if (leftover) {
+      dec += leftover.split('').map(d => d + '\u0305').join('');
+    } else if (usedFromRep > 0) {
+      const start = dec.length - usedFromRep;
+      const prefix = dec.slice(0, start);
+      const repShown = dec.slice(start).split('').map(d => d + '\u0305').join('');
+      dec = prefix + repShown;
+    }
+    const intStr = formatNumber(intPart, null, 0);
+    return sign + intStr + '.' + dec;
+  } catch {
+    return null;
+  }
+}
+
 function timeToMinutes(str) {
   const m = str.match(/(\d{1,2}):(\d{2})(am|pm)?/i);
   if (m) {
@@ -462,7 +522,12 @@ function compute(text, results, metas) {
         const display = formatDuration(res);
         return { display, value: res, sym: null, decimals: undefined, assign: assign ? assign[1] : null, isTime: true, timeOfDay: false, isDate: false, isDay: false };
       }
-      const display = formatNumber(res, sym, sym ? 2 : decimals);
+      let display;
+      if (!sym && decimals === undefined) {
+        display = formatRepeating(res) || formatNumber(res, null, undefined);
+      } else {
+        display = formatNumber(res, sym, sym ? 2 : decimals);
+      }
       return { display, value: res, sym, decimals: sym ? 2 : decimals, assign: assign ? assign[1] : null, isTime: false, timeOfDay: false, isDate: false, isDay: false };
     }
     return { display: '', value: null, sym: null, decimals: undefined, assign: null, isTime: false, timeOfDay: false, isDate: false, isDay: false };

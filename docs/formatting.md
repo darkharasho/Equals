@@ -10,4 +10,6 @@ mixed directly into expressions and are converted into their decimal form.
 - `$subtotal * (1 + $tax)`
 
 Numeric results are automatically formatted with the appropriate number of
-fractional digits based on the input.
+fractional digits based on the input. Repeating decimals are shortened to the
+first two digits with the repeating sequence shown using an overline, for
+example `1/3` → `0.3̅3̅`.

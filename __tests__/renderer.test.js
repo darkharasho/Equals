@@ -153,6 +153,16 @@ test('compute evaluates complex arithmetic expressions', () => {
   expect(trig.value).toBeCloseTo(2);
 });
 
+test('compute formats repeating decimals with overline', () => {
+  const third = renderer.compute('1/3', [], []);
+  const sixth = renderer.compute('1/6', [], []);
+  const seventh = renderer.compute('1/7', [], []);
+  const over = (s) => s.split('').map(d => d + '\u0305').join('');
+  expect(third.display).toBe(`0.${over('33')}`);
+  expect(sixth.display).toBe(`0.16${over('6')}`);
+  expect(seventh.display).toBe(`0.14${over('2857')}`);
+});
+
 test('compute handles line and variable ranges with aggregate helpers', () => {
   const lineResults = [1, 2, 3, 4, 5];
   const avg = renderer.compute('avg(1..5)', lineResults, []);
