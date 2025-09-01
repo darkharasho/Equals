@@ -129,7 +129,7 @@ function updateGradient(value) {
   const grad = `linear-gradient(to right, ${c1}, ${c2})`;
   gradientSelect.style.backgroundImage = grad;
   gradientSelect.style.backgroundColor = 'var(--settings-bg)';
-  gradientSelect.style.color = 'var(--text-color)';
+  gradientSelect.style.color = '#fff';
   if (gradientPreview) gradientPreview.style.background = grad;
 }
 
@@ -146,22 +146,26 @@ function mixColors(c1, c2, w) {
   return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
 }
 
+function shadeColor(c, w) {
+  return mixColors(c, w < 0 ? '#000000' : '#ffffff', Math.abs(w));
+}
+
 function updateSyntaxGradient(value) {
   const [c1, c2] = value.split(',');
   const mix = (w) => mixColors(c1, c2, w);
   const vars = {
-    '--text-color': mix(0.5),
-    '--number-color': mix(0.1),
-    '--answer-color': mix(0.2),
-    '--percent-color': mix(0.3),
-    '--currency-color': mix(0.4),
-    '--var-color': mix(0.5),
-    '--range-color': mix(0.6),
-    '--comment-color': mix(0.7),
-    '--time-color': mix(0.8),
-    '--trig-color': mix(0.9),
-    '--unit-color': mix(0.35),
-    '--date-color': mix(0.65)
+    '--text-color': shadeColor(mix(0.5), -0.2),
+    '--number-color': shadeColor(mix(0.0), -0.1),
+    '--answer-color': shadeColor(mix(0.2), 0.2),
+    '--percent-color': shadeColor(mix(0.4), -0.2),
+    '--currency-color': shadeColor(mix(0.6), 0.2),
+    '--var-color': shadeColor(mix(0.8), -0.1),
+    '--range-color': shadeColor(mix(0.1), 0.1),
+    '--comment-color': shadeColor(mix(0.3), -0.3),
+    '--time-color': shadeColor(mix(0.5), 0.3),
+    '--trig-color': shadeColor(mix(0.7), -0.3),
+    '--unit-color': shadeColor(mix(0.9), 0.1),
+    '--date-color': shadeColor(mix(1.0), -0.4)
   };
   for (const [k, v] of Object.entries(vars)) {
     document.body.style.setProperty(k, v);
@@ -169,7 +173,7 @@ function updateSyntaxGradient(value) {
   const grad = `linear-gradient(to right, ${c1}, ${c2})`;
   syntaxSelect.style.backgroundImage = grad;
   syntaxSelect.style.backgroundColor = 'var(--settings-bg)';
-  syntaxSelect.style.color = 'var(--text-color)';
+  syntaxSelect.style.color = '#fff';
   if (syntaxPreview) syntaxPreview.style.background = grad;
 }
 

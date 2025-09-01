@@ -439,6 +439,14 @@ body.light #settings {
   color: var(--text-color);
 }
 
+/* Ensure gradient theme dropdown text remains visible */
+#gradient-select,
+#syntax-select,
+#gradient-select option,
+#syntax-select option {
+  color: #fff;
+}
+
 #angle-mode {
   width: 100%;
 }

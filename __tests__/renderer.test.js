@@ -125,7 +125,7 @@ test('changing gradient updates select background', () => {
   expect(select.style.backgroundImage).toContain('#000000');
   expect(select.style.backgroundImage).toContain('#ffffff');
   expect(select.style.backgroundColor).toBe('var(--settings-bg)');
-  expect(select.style.color).toBe('var(--text-color)');
+  expect(select.style.color).toBe('rgb(255, 255, 255)');
   Array.from(select.options).forEach(opt => expect(opt.style.color).toBe(''));
 });
 
