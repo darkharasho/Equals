@@ -60,6 +60,7 @@ const closeBtn = document.getElementById('close-btn');
 const settingsView = document.getElementById('settings');
 const themeSelect = document.getElementById('theme-select');
 const gradientSelect = document.getElementById('gradient-select');
+const gradientPreview = document.getElementById('gradient-preview');
 const sizeSelect = document.getElementById('size-select');
 const fontSizeInput = document.getElementById('font-size');
 const angleModeSelect = document.getElementById('angle-mode');
@@ -99,12 +100,20 @@ function applyTheme(theme) {
   ipcRenderer.send('theme', theme);
 }
 
-function applySettings() {
-  applyTheme(themeSelect.value);
-  const [c1, c2] = gradientSelect.value.split(',');
+function updateGradient(value) {
+  const [c1, c2] = value.split(',');
   document.body.style.setProperty('--grad1', c1);
   document.body.style.setProperty('--grad2', c2);
-  gradientSelect.style.background = '';
+  const grad = `linear-gradient(to right, ${c1}, ${c2})`;
+  gradientSelect.style.backgroundImage = grad;
+  gradientSelect.style.backgroundColor = 'var(--settings-bg)';
+  gradientSelect.style.color = 'var(--text-color)';
+  if (gradientPreview) gradientPreview.style.background = grad;
+}
+
+function applySettings() {
+  applyTheme(themeSelect.value);
+  updateGradient(gradientSelect.value);
   const [w, h] = sizeSelect.value.split(',').map(Number);
   if (Number.isFinite(w) && Number.isFinite(h)) {
     ipcRenderer.send('window:resize', { width: w, height: h });
@@ -778,10 +787,7 @@ themeSelect.addEventListener('change', (e) => {
 });
 
 gradientSelect.addEventListener('change', (e) => {
-  const [c1, c2] = e.target.value.split(',');
-  document.body.style.setProperty('--grad1', c1);
-  document.body.style.setProperty('--grad2', c2);
-  gradientSelect.style.background = '';
+  updateGradient(e.target.value);
   saveState();
 });
 
