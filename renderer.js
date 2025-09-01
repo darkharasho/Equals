@@ -699,6 +699,7 @@ function renderTabMenu() {
       tabMenu.classList.add('hidden');
       renderTab();
       saveState();
+      showToast(`Switched to ${tabs[currentTab].name}`);
     });
       const edit = document.createElement('span');
       edit.className = 'tab-edit';
@@ -748,6 +749,7 @@ function renderTabMenu() {
     tabMenu.classList.add('hidden');
     renderTab();
     saveState();
+    showToast(`Created ${tabs[currentTab].name}`);
   });
   tabMenu.appendChild(newItem);
 }
@@ -778,6 +780,7 @@ document.addEventListener('keydown', (e) => {
     tabMenu.classList.add('hidden');
     renderTab();
     saveState();
+    showToast(`Switched to ${tabs[currentTab].name}`);
   } else if (e.key.toLowerCase() === 't') {
     e.preventDefault();
     tabs.push({ name: `Tab ${tabs.length + 1}`, lines: [''] });
@@ -785,7 +788,8 @@ document.addEventListener('keydown', (e) => {
     tabMenu.classList.add('hidden');
     renderTab();
     saveState();
-  } else if (e.key === ',') {
+    showToast(`Created ${tabs[currentTab].name}`);
+  } else if (e.key === '=') {
     e.preventDefault();
     settingsBtn.click();
   }
