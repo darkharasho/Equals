@@ -1,6 +1,6 @@
 const math = require('mathjs');
 const { ipcRenderer } = require('electron');
-const { getRate, clearCache } = require('./exchangeRates');
+const { getRate, clearCache } = require('./app/exchangeRates');
 
 let tabs = [{ name: 'Tab 1', lines: [''] }];
 let currentTab = 0;

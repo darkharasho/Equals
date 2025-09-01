@@ -7,7 +7,7 @@ jest.mock('electron', () => ({
   }
 }));
 
-jest.mock('../exchangeRates.js', () => ({
+jest.mock('../app/exchangeRates.js', () => ({
   getRate: jest.fn().mockResolvedValue(0.9),
   clearCache: jest.fn()
 }));
@@ -133,13 +133,13 @@ test('compute evaluates complex arithmetic expressions', async () => {
 
 test('compute converts currencies using exchange rates', async () => {
   const result = await renderer.compute('10 USD to EUR', [], []);
-  const rates = require('../exchangeRates.js');
+  const rates = require('../app/exchangeRates.js');
   expect(rates.getRate).toHaveBeenCalledWith('USD', 'EUR');
   expect(result.value).toBeCloseTo(9);
 });
 
 test('refresh button clears cached rates', async () => {
-  const rates = require('../exchangeRates.js');
+  const rates = require('../app/exchangeRates.js');
   const btn = document.getElementById('refresh-rates');
   btn.click();
   await Promise.resolve();
