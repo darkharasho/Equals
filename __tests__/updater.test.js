@@ -16,7 +16,7 @@ test('initAutoUpdate checks for updates and prompts to install', async () => {
   await initAutoUpdate();
 
   expect(updater.setFeedURL).toHaveBeenCalledWith({
-    url: 'https://github.com/darkharasho/Equals/releases/latest'
+    url: 'https://github.com/darkharasho/equals/releases.atom'
   });
   expect(updater.checkForUpdatesAndNotify).toHaveBeenCalled();
 

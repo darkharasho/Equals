@@ -3,7 +3,7 @@ const { dialog } = require('electron');
 
 function initAutoUpdate() {
   autoUpdater.setFeedURL({
-    url: 'https://github.com/darkharasho/Equals/releases/latest'
+    url: 'https://github.com/darkharasho/equals/releases.atom'
   });
   // show a prompt once the update has been downloaded
   autoUpdater.on('update-downloaded', () => {
