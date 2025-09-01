@@ -10,8 +10,9 @@ mixed directly into expressions and are converted into their decimal form.
 - `$subtotal * (1 + $tax)`
 
 Numeric results are automatically formatted with the appropriate number of
-fractional digits based on the input. Repeating decimals are shortened to the
-first two digits with the repeating sequence shown using an overline, for
-example `1/3` → `0.3̅3̅`.
+fractional digits based on the input. All decimals are truncated to two
+places without repeating notation, so `1/3` becomes `0.33` and `sqrt(2)`
+becomes `1.41`.
 
-Non-repeating decimals are truncated to two places, e.g. `sqrt(2)` → `1.41`. Unit conversions follow the same rules so `30in to yard` becomes `0.833̅ yd` and exact results like `12in to feet` render as `1 ft`.
+Unit conversions follow the same rules so `30in to yard` becomes `0.83 yd`
+and exact results like `12in to feet` render as `1 ft`.

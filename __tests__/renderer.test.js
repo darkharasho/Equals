@@ -153,14 +153,13 @@ test('compute evaluates complex arithmetic expressions', () => {
   expect(trig.value).toBeCloseTo(2);
 });
 
-test('compute formats repeating decimals with overline', () => {
+test('compute truncates repeating decimals to two digits', () => {
   const third = renderer.compute('1/3', [], []);
   const sixth = renderer.compute('1/6', [], []);
   const seventh = renderer.compute('1/7', [], []);
-  const over = (s) => s.split('').map(d => d + '\u0305').join('');
-  expect(third.display).toBe(`0.${over('33')}`);
-  expect(sixth.display).toBe(`0.16${over('6')}`);
-  expect(seventh.display).toBe(`0.14${over('2857')}`);
+  expect(third.display).toBe('0.33');
+  expect(sixth.display).toBe('0.16');
+  expect(seventh.display).toBe('0.14');
 });
 
 test('compute truncates non-repeating decimals to two digits', () => {
@@ -171,8 +170,7 @@ test('compute truncates non-repeating decimals to two digits', () => {
 test('unit conversions shorten decimals and clean up results', () => {
   const yard = renderer.compute('30in to yard', [], []);
   const feet = renderer.compute('12in to feet', [], []);
-  const over = (s) => s.split('').map(d => d + '\u0305').join('');
-  expect(yard.display).toBe(`0.83${over('3')} yd`);
+  expect(yard.display).toBe('0.83 yd');
   expect(feet.display).toBe('1 ft');
 });
 

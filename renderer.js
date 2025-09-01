@@ -182,67 +182,6 @@ function formatNumber(num, sym, decimals) {
   }
 }
 
-function formatRepeating(num) {
-  try {
-    const frac = math.fraction(num);
-    let temp = Number(frac.d);
-    while (temp % 2 === 0) temp /= 2;
-    while (temp % 5 === 0) temp /= 5;
-    if (temp === 1) return null;
-    const sign = frac.s < 0 ? '-' : '';
-    let n = Math.abs(Number(frac.n));
-    const d = Number(frac.d);
-    if (d > 1000) return null;
-    const intPart = Math.floor(n / d);
-    let rem = n % d;
-    const seen = {};
-    const digits = [];
-    let idx = 0;
-    let repStart = -1;
-    while (rem !== 0) {
-      if (seen[rem] !== undefined) { repStart = seen[rem]; break; }
-      seen[rem] = idx;
-      rem *= 10;
-      digits.push(Math.floor(rem / d));
-      rem %= d;
-      idx++;
-    }
-    if (repStart === -1) return null;
-    const nonRep = digits.slice(0, repStart).join('');
-    const rep = digits.slice(repStart).join('');
-    const visible = 2;
-    let first = '';
-    if (nonRep.length >= visible) {
-      first = nonRep.slice(0, visible);
-    } else {
-      first = nonRep;
-      const need = visible - nonRep.length;
-      const repNeeded = rep.repeat(Math.ceil(need / rep.length));
-      first += repNeeded.slice(0, need);
-    }
-    const usedFromRep = Math.max(0, visible - nonRep.length);
-    let leftover;
-    if (rep.length > usedFromRep) {
-      leftover = rep.slice(usedFromRep);
-    } else {
-      leftover = nonRep.length > 0 ? rep : '';
-    }
-    let dec = first;
-    if (leftover) {
-      dec += leftover.split('').map(d => d + '\u0305').join('');
-    } else if (usedFromRep > 0) {
-      const start = dec.length - usedFromRep;
-      const prefix = dec.slice(0, start);
-      const repShown = dec.slice(start).split('').map(d => d + '\u0305').join('');
-      dec = prefix + repShown;
-    }
-    const intStr = formatNumber(intPart, null, 0);
-    return sign + intStr + '.' + dec;
-  } catch {
-    return null;
-  }
-}
-
 function formatTruncate(num, digits = 2) {
   const factor = Math.pow(10, digits);
   const truncated = Math.trunc(num * factor) / factor;
@@ -512,7 +451,7 @@ function compute(text, results, metas) {
       const unitStr = unitMap[unitName] || unitName;
       let numDisplay;
       if (!sym && decimals === undefined) {
-        numDisplay = formatRepeating(num) || formatTruncate(num);
+        numDisplay = formatTruncate(num);
       } else {
         numDisplay = formatNumber(num, sym, sym ? 2 : decimals);
       }
@@ -545,7 +484,7 @@ function compute(text, results, metas) {
       if (!sym && decimals === undefined) {
         let num = res;
         if (Math.abs(num - Math.round(num)) < 1e-10) num = Math.round(num);
-        display = formatRepeating(num) || formatTruncate(num);
+        display = formatTruncate(num);
         return { display, value: num, sym, decimals: sym ? 2 : decimals, assign: assign ? assign[1] : null, isTime: false, timeOfDay: false, isDate: false, isDay: false };
       } else {
         let num = res;
