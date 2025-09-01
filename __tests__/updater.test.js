@@ -15,6 +15,9 @@ test('initAutoUpdate checks for updates and prompts to install', async () => {
   const updater = mockUpdateAvailable();
   await initAutoUpdate();
 
+  expect(updater.setFeedURL).toHaveBeenCalledWith({
+    url: 'https://github.com/darkharasho/Equals/releases/latest'
+  });
   expect(updater.checkForUpdatesAndNotify).toHaveBeenCalled();
 
   const handler = updater.on.mock.calls.find(([e]) => e === 'update-downloaded')[1];

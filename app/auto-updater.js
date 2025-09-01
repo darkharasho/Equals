@@ -2,6 +2,9 @@ const { autoUpdater } = require('electron-updater');
 const { dialog } = require('electron');
 
 function initAutoUpdate() {
+  autoUpdater.setFeedURL({
+    url: 'https://github.com/darkharasho/Equals/releases/latest'
+  });
   // show a prompt once the update has been downloaded
   autoUpdater.on('update-downloaded', () => {
     dialog
@@ -34,6 +37,7 @@ function mockUpdateAvailable() {
   });
   autoUpdater.on = jest.fn();
   autoUpdater.quitAndInstall = jest.fn();
+  autoUpdater.setFeedURL = jest.fn();
   return autoUpdater;
 }
 
