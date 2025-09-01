@@ -23,6 +23,7 @@ body {
   --percent-color: #56b6c2;
   --currency-color: #bb87f8;
   --var-color: #c678dd;
+  --range-color: #00b0ff;
   --comment-color: #6a9955;
   --time-color: #e06c75;
   --trig-color: #ff6bcb;
@@ -44,6 +45,7 @@ body.light {
   --percent-color: #006b75;
   --currency-color: #6a1b9a;
   --var-color: #8e44ad;
+  --range-color: #005d8f;
   --comment-color: #008000;
   --time-color: #d32f2f;
   --trig-color: #d23669;
@@ -138,6 +140,7 @@ body.light {
 .time,
 .last,
 .unit,
+.range,
 .date {
   background-clip: text;
   -webkit-background-clip: text;
@@ -183,6 +186,14 @@ body.light {
     135deg,
     color-mix(in srgb, var(--var-color) 70%, white),
     var(--var-color)
+  );
+}
+
+.range {
+  background-image: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--range-color) 70%, white),
+    var(--range-color)
   );
 }
 

@@ -9,6 +9,7 @@ jest.mock('electron', () => ({
 
 let renderer;
 let ipcRenderer;
+const math = require('mathjs');
 
 function setupDOM() {
   document.body.innerHTML = `
@@ -137,6 +138,43 @@ test('compute evaluates complex arithmetic expressions', () => {
   expect(trig.value).toBeCloseTo(2);
 });
 
+test('compute handles line and variable ranges with aggregate helpers', () => {
+  const lineResults = [1, 2, 3, 4, 5];
+  const avg = renderer.compute('avg(1..5)', lineResults, []);
+  expect(avg.value).toBe(3);
+  const mean = renderer.compute('mean(1..5)', lineResults, []);
+  expect(mean.value).toBe(3);
+  renderer.vars.a = { value: 1 };
+  renderer.vars.b = { value: 2 };
+  renderer.vars.c = { value: 3 };
+  renderer.vars.d = { value: 4 };
+  const sum = renderer.compute('sum($a:$d)', [], []);
+  expect(sum.value).toBe(10);
+  const median = renderer.compute('median(1..5)', lineResults, []);
+  expect(median.value).toBe(3);
+  const std = renderer.compute('std(1..5)', lineResults, []);
+  expect(std.value).toBeCloseTo(math.std(lineResults));
+});
+
+test('variable assignments persist across computations', () => {
+  const assign = renderer.compute('$a = 1', [], []);
+  expect(assign.value).toBe(1);
+  renderer.vars[assign.assign] = { value: assign.value };
+  const res = renderer.compute('$a + 2', [], []);
+  expect(res.value).toBe(3);
+});
+
+test('pasting multiple lines splits into separate lines', () => {
+  const container = document.getElementById('container');
+  const expr = container.querySelector('.expr[data-index="0"]');
+  expr.textContent = '$a = 1\n$a + 2';
+  expr.dispatchEvent(new Event('input', { bubbles: true }));
+  const lines = container.querySelectorAll('.line');
+  expect(lines.length).toBe(2);
+  const second = container.querySelector('.res[data-index="1"]');
+  expect(second.textContent).toBe('3');
+});
+
 test('enter on empty line inserts a new line below', () => {
   const container = document.getElementById('container');
   const expr = container.querySelector('.expr[data-index="0"]');
@@ -147,4 +185,13 @@ test('enter on empty line inserts a new line below', () => {
     new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })
   );
   expect(document.activeElement.dataset.index).toBe('2');
+});
+
+test('line deletion does not create an extra blank line', () => {
+  const container = document.getElementById('container');
+  const expr = container.querySelector('.expr[data-index="0"]');
+  expr.textContent = '\n';
+  expr.dispatchEvent(new Event('input', { bubbles: true }));
+  const lines = container.querySelectorAll('.line');
+  expect(lines.length).toBe(1);
 });

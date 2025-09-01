@@ -19,6 +19,7 @@ Detailed documentation for Equals lives in the [docs](docs) directory:
 
 - [Unit tokens](docs/units.md) – compact measurements and conversions such as `5cm` or `32F to C`.
 - [Variables and references](docs/variables.md) – reuse values with `$name` and `""`.
+- [Range expressions](docs/ranges.md) – aggregate numbers or variables with `1..5` and `$a:$d`.
 - [Time expressions](docs/time.md) – mix `12:30pm`, `2h`, `45m`, and more.
 - [Date expressions](docs/dates.md) – ISO dates and the `today` keyword.
 - [Currency, percent, and number formatting](docs/formatting.md) – locale-aware output.
