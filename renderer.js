@@ -195,6 +195,16 @@ function replaceTimeTokens(expr, state) {
     });
 }
 
+function replaceUnitTokens(expr) {
+  const map = { f: 'degF', c: 'degC', k: 'K' };
+  return expr
+    .replace(/(\d+(?:\.\d+)?)\s*(cm|mm|km|m|in|inch|ft|yd|mi|g|kg|mg|lb|oz|l|ml|gal|F|C|K)\b/gi, (_, n, u) => {
+      const unit = map[u.toLowerCase()] || u.toLowerCase();
+      return `unit(${n}, '${unit}')`;
+    })
+    .replace(/\b(F|C|K)\b/g, (m) => map[m.toLowerCase()] || m);
+}
+
 function esc(str) {
   return str.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
 }
@@ -213,12 +223,15 @@ function highlight(text, idx = 0) {
   }
   const safe = esc(text);
   const lastIdx = findLastIndex(idx);
-  return safe.replace(/\$[a-zA-Z_]\w*|""|\d{1,2}:\d{2}(?:am|pm)?|\d+\s*(?:hr|h|m|min|s|sec)|\b(?:asin|sin)\b|[$€£]?\d+(?:\.\d+)?%?/gi, (match) => {
+  return safe.replace(/\$[a-zA-Z_]\w*|""|\d{1,2}:\d{2}(?:am|pm)?|\d+\s*(?:hr|h|m|min|s|sec)|\b(?:asin|sin)\b|\d+(?:\.\d+)?\s*(?:cm|mm|km|m|in|inch|ft|yd|mi|g|kg|mg|lb|oz|l|ml|gal|F|C|K)|\b(?:cm|mm|km|m|in|inch|ft|yd|mi|g|kg|mg|lb|oz|l|ml|gal|F|C|K)\b|[$€£]?\d+(?:\.\d+)?%?/gi, (match) => {
     if (/^(?:asin|sin)$/i.test(match)) {
       return `<span class="trig">${match}</span>`;
     }
     if (/^\d{1,2}:\d{2}(?:am|pm)?$/i.test(match) || /^\d+\s*(?:hr|h|m|min|s|sec)$/i.test(match)) {
       return `<span class="time">${match}</span>`;
+    }
+    if (/^\d+(?:\.\d+)?\s*(?:cm|mm|km|m|in|inch|ft|yd|mi|g|kg|mg|lb|oz|l|ml|gal|F|C|K)$/i.test(match) || /^(?:cm|mm|km|m|in|inch|ft|yd|mi|g|kg|mg|lb|oz|l|ml|gal|F|C|K)$/i.test(match)) {
+      return `<span class="unit">${match}</span>`;
     }
     if (match === '""') {
       return `<span class="last" data-ref="${lastIdx}">""</span>`;
@@ -281,6 +294,7 @@ function compute(text, results, metas) {
     .replace(/([0-9.]+)\s*([*/])\s*([0-9.]+)%/g, (_, a, op, b) => `${a}${op}(${b}/100)`)
     .replace(/(\d+(?:\.\d+)?)%/g, '($1/100)')
     .replace(/,/g, '');
+  exprText = replaceUnitTokens(exprText);
   try {
     const useDeg = angleModeSelect.value === 'deg';
     const scope = {};
@@ -296,6 +310,10 @@ function compute(text, results, metas) {
       scope.atan = (x) => rad2deg(math.atan(x));
     }
     const res = math.evaluate(exprText, scope);
+    if (res && res.isUnit) {
+      const display = res.toString();
+      return { display, value: res.toString(), sym: null, decimals: undefined, assign: assign ? assign[1] : null, isTime: false, timeOfDay: false };
+    }
     if (typeof res === 'number') {
       if (timeState.hasTime) {
         if (timeState.hasTimeOfDay) {
