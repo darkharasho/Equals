@@ -153,6 +153,28 @@ test('compute evaluates complex arithmetic expressions', () => {
   expect(trig.value).toBeCloseTo(2);
 });
 
+test('compute truncates repeating decimals to two digits', () => {
+  const third = renderer.compute('1/3', [], []);
+  const sixth = renderer.compute('1/6', [], []);
+  const seventh = renderer.compute('1/7', [], []);
+  expect(third.display).toBe('0.33');
+  expect(sixth.display).toBe('0.16');
+  expect(seventh.display).toBe('0.14');
+});
+
+test('compute truncates non-repeating decimals to two digits', () => {
+  const res = renderer.compute('sqrt(2)', [], []);
+  expect(res.display).toBe('1.41');
+});
+
+test('unit conversions shorten decimals and clean up results', () => {
+  const yard = renderer.compute('30in to yard', [], []);
+  const feet = renderer.compute('12in to feet', [], []);
+  expect(yard.display).toBe('0.83 yd');
+  expect(feet.display).toBe('1 ft');
+});
+
+
 test('compute handles line and variable ranges with aggregate helpers', () => {
   const lineResults = [1, 2, 3, 4, 5];
   const avg = renderer.compute('avg(1..5)', lineResults, []);
