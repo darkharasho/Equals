@@ -1,7 +1,7 @@
 const { ipcRenderer } = require('electron');
 const fs = require('fs');
 const path = require('path');
-const { marked } = require('marked');
+const marked = require('marked');
 
 const container = document.getElementById('container');
 const minBtn = document.getElementById('min-btn');
