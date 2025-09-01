@@ -44,6 +44,18 @@ beforeEach(() => {
   jest.resetModules();
   setupDOM();
   localStorage.clear();
+  HTMLElement.prototype.scrollIntoView = jest.fn();
+  let active = null;
+  Object.defineProperty(document, 'activeElement', {
+    get() {
+      return active;
+    },
+    set(v) {
+      active = v;
+    },
+    configurable: true
+  });
+  HTMLElement.prototype.focus = function() { document.activeElement = this; };
   renderer = require('../renderer.js');
   ipcRenderer = require('electron').ipcRenderer;
   ipcRenderer.send.mockClear();
@@ -123,4 +135,16 @@ test('compute evaluates complex arithmetic expressions', () => {
   const trig = renderer.compute('sin(90)+cos(0)', [], []);
   expect(complex.value).toBeCloseTo(11.5);
   expect(trig.value).toBeCloseTo(2);
+});
+
+test('enter on empty line inserts a new line below', () => {
+  const container = document.getElementById('container');
+  const expr = container.querySelector('.expr[data-index="0"]');
+  renderer.setCaret(expr, 0);
+  expr.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+  expect(document.activeElement.dataset.index).toBe('1');
+  document.activeElement.dispatchEvent(
+    new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })
+  );
+  expect(document.activeElement.dataset.index).toBe('2');
 });

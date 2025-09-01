@@ -547,7 +547,7 @@ function onKey(e) {
   if (e.key === 'Enter') {
     e.preventDefault();
     const caret = getCaret(e.target);
-    const insertIdx = caret === 0 ? index : index + 1;
+    const insertIdx = (caret === 0 && e.target.textContent !== '') ? index : index + 1;
     tabs[currentTab].lines.splice(insertIdx, 0, '');
     renderTab();
     const target = container.querySelector(`.expr[data-index="${insertIdx}"]`);
