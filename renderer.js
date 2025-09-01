@@ -728,3 +728,14 @@ angleModeSelect.addEventListener('change', () => {
 
 renderTab();
 window.addEventListener('resize', updateDivider);
+
+module.exports = {
+  deg2rad,
+  rad2deg,
+  getCaret,
+  setCaret,
+  saveState,
+  loadState,
+  applyTheme,
+  compute
+};
