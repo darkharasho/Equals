@@ -68,68 +68,14 @@ const angleModeSelect = document.getElementById('angle-mode');
 const versionEl = document.getElementById('version');
 const toast = document.getElementById('toast');
 
-const helpOverlay = document.createElement('div');
-helpOverlay.id = 'help-overlay';
-helpOverlay.classList.add('hidden', 'no-drag');
-helpOverlay.innerHTML = `
-  <div id="help-header"><button id="help-close" title="Close" aria-label="Close" type="button">×</button></div>
-  <div id="help-content"></div>`;
-document.body.appendChild(helpOverlay);
-const helpContent = document.getElementById('help-content');
-const helpClose = document.getElementById('help-close');
+if (helpBtn) helpBtn.addEventListener('click', () => {
+  ipcRenderer.send('help:open');
+});
 
-function mdToHtml(md) {
-  const lines = md.split('\n');
-  let html = '';
-  let inList = false;
-  for (const line of lines) {
-    if (line.startsWith('### ')) html += `<h3>${line.slice(4)}</h3>`;
-    else if (line.startsWith('## ')) html += `<h2>${line.slice(3)}</h2>`;
-    else if (line.startsWith('# ')) html += `<h1>${line.slice(2)}</h1>`;
-    else if (line.startsWith('- ')) {
-      if (!inList) { html += '<ul>'; inList = true; }
-      html += `<li>${line.slice(2)}</li>`;
-    } else if (line.trim() === '') {
-      if (inList) { html += '</ul>'; inList = false; }
-      html += '<br />';
-    } else {
-      if (inList) { html += '</ul>'; inList = false; }
-      html += `<p>${line}</p>`;
-    }
-  }
-  if (inList) html += '</ul>';
-  return html.replace(/\[(.*?)\]\((.*?)\)/gim, '<a href="$2">$1</a>');
-}
-
-async function showHelp(file = 'docs/interface.md') {
-  const res = await fetch(file);
-  const text = await res.text();
-  helpContent.innerHTML = mdToHtml(text);
-  helpContent.querySelectorAll('a').forEach(a => {
-    a.addEventListener('click', (e) => {
-      const href = a.getAttribute('href');
-      if (href && href.endsWith('.md')) {
-        e.preventDefault();
-        showHelp(`docs/${href}`);
-      }
-    });
-  });
-  helpOverlay.classList.remove('hidden');
-}
-
-function hideHelp() {
-  helpOverlay.classList.add('hidden');
-}
-
-if (helpBtn) helpBtn.addEventListener('click', () => showHelp());
-helpClose.addEventListener('click', hideHelp);
 document.addEventListener('keydown', (e) => {
   if (e.key === 'F1') {
     e.preventDefault();
-    if (helpOverlay.classList.contains('hidden')) showHelp();
-    else hideHelp();
-  } else if (e.key === 'Escape' && !helpOverlay.classList.contains('hidden')) {
-    hideHelp();
+    ipcRenderer.send('help:open');
   }
 });
 

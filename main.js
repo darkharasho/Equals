@@ -24,6 +24,37 @@ function createWindow() {
   win.loadFile('index.html');
 }
 
+let helpWin = null;
+
+function createHelpWindow() {
+  if (helpWin) {
+    helpWin.focus();
+    return;
+  }
+  helpWin = new BrowserWindow({
+    width: 400,
+    height: 400,
+    minWidth: 300,
+    minHeight: 300,
+    frame: false,
+    transparent: true,
+    titleBarStyle: 'hidden',
+    backgroundMaterial: 'mica',
+    backgroundColor: '#00000000',
+    roundedCorners: true,
+    resizable: true,
+    icon: path.join(__dirname, 'app/icons/equals.png'),
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false
+    }
+  });
+  helpWin.loadFile('help.html');
+  helpWin.on('closed', () => {
+    helpWin = null;
+  });
+}
+
 ipcMain.on('window:minimize', (e) => {
   const win = BrowserWindow.fromWebContents(e.sender);
   win.minimize();
@@ -49,6 +80,10 @@ ipcMain.on('window:maximize', (e) => {
 ipcMain.on('window:close', (e) => {
   const win = BrowserWindow.fromWebContents(e.sender);
   win.close();
+});
+
+ipcMain.on('help:open', () => {
+  createHelpWindow();
 });
 
 ipcMain.on('window:resize', (e, size) => {
