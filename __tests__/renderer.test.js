@@ -156,6 +156,25 @@ test('compute handles line and variable ranges with aggregate helpers', () => {
   expect(std.value).toBeCloseTo(math.std(lineResults));
 });
 
+test('variable assignments persist across computations', () => {
+  const assign = renderer.compute('$a = 1', [], []);
+  expect(assign.value).toBe(1);
+  renderer.vars[assign.assign] = { value: assign.value };
+  const res = renderer.compute('$a + 2', [], []);
+  expect(res.value).toBe(3);
+});
+
+test('pasting multiple lines splits into separate lines', () => {
+  const container = document.getElementById('container');
+  const expr = container.querySelector('.expr[data-index="0"]');
+  expr.textContent = '$a = 1\n$a + 2';
+  expr.dispatchEvent(new Event('input', { bubbles: true }));
+  const lines = container.querySelectorAll('.line');
+  expect(lines.length).toBe(2);
+  const second = container.querySelector('.res[data-index="1"]');
+  expect(second.textContent).toBe('3');
+});
+
 test('enter on empty line inserts a new line below', () => {
   const container = document.getElementById('container');
   const expr = container.querySelector('.expr[data-index="0"]');

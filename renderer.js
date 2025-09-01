@@ -346,8 +346,8 @@ function highlight(text, idx = 0) {
 
 function compute(text, results, metas) {
   if (!text.trim() || /^\s*#\s/.test(text)) return { display: '', value: null, sym: null, decimals: undefined, assign: null, isTime: false, timeOfDay: false, isDate: false, isDay: false };
-  const assign = text.match(/^\s*\$([a-zA-Z_]\w*)\s*=\s*(.+)$/);
-  let exprText = assign ? assign[2] : text;
+  const assign = text.match(/^\s*\$([a-zA-Z_]\w*)\s*=\s*([\s\S]+)$/);
+  let exprText = (assign ? assign[2] : text).trim();
   let sym = null;
   let decimals;
   exprText = exprText.replace(/([$€£])(?=\d)/g, m => { sym = sym || m; decimals = 2; return ''; });
@@ -576,14 +576,28 @@ function renderTab() {
 
 function onInput(e) {
   let index = Number(e.target.dataset.index);
-  const caret = getCaret(e.target);
-  let raw = e.target.innerText.replace(/,/g, '');
+  let raw = (e.target.innerText || e.target.textContent || '').replace(/,/g, '');
   // constrain currency decimals without auto-appending values
   raw = raw.replace(/([$€£])(\d+)(\.?)(\d*)/g, (_, sym, intp, dot, dec) => {
     return sym + intp + (dot ? '.' + dec.slice(0, 2) : '');
   });
-  tabs[currentTab].lines[index] = raw;
-  recalc(index, caret);
+  const parts = raw.split(/\n/);
+  if (parts.length > 1) {
+    tabs[currentTab].lines.splice(index, 1, ...parts);
+    renderTab();
+    const targetIdx = index + parts.length - 1;
+    const target = container.querySelector(`.expr[data-index="${targetIdx}"]`);
+    if (target) {
+      target.focus();
+      setCaret(target, parts[parts.length - 1].length);
+      target.scrollIntoView({ block: 'nearest' });
+      clampScroll();
+    }
+  } else {
+    const caret = getCaret(e.target);
+    tabs[currentTab].lines[index] = raw;
+    recalc(index, caret);
+  }
 }
 
 function onKey(e) {
