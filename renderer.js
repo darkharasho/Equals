@@ -1,5 +1,6 @@
 const math = require('mathjs');
 const { ipcRenderer } = require('electron');
+const { getRate, clearCache } = require('./exchangeRates');
 
 let tabs = [{ name: 'Tab 1', lines: [''] }];
 let currentTab = 0;
@@ -57,6 +58,7 @@ const fontSizeInput = document.getElementById('font-size');
 const angleModeSelect = document.getElementById('angle-mode');
 const versionEl = document.getElementById('version');
 const toast = document.getElementById('toast');
+const refreshRatesBtn = document.getElementById('refresh-rates');
 
 function saveState() {
   const settings = {
@@ -116,7 +118,8 @@ minBtn.addEventListener('click', () => ipcRenderer.send('window:minimize'));
 maxBtn.addEventListener('click', () => ipcRenderer.send('window:maximize'));
 closeBtn.addEventListener('click', () => ipcRenderer.send('window:close'));
 
-const currencyMap = { '$': 'USD', '€': 'EUR', '£': 'GBP' };
+const currencyMap = { '$': 'USD', '€': 'EUR', '£': 'GBP', '¥': 'JPY', '₹': 'INR', '₩': 'KRW' };
+const codeToSymbol = Object.fromEntries(Object.entries(currencyMap).map(([s, c]) => [c, s]));
 
 function deg2rad(deg) { return deg * Math.PI / 180; }
 function rad2deg(rad) { return rad * 180 / Math.PI; }
@@ -257,7 +260,7 @@ function highlight(text, idx = 0) {
   }
   const safe = esc(text);
   const lastIdx = findLastIndex(idx);
-  return safe.replace(/\$[a-zA-Z_]\w*|""|\d{1,2}:\d{2}(?:am|pm)?|\d{4}-\d{2}-\d{2}|\btoday\b|\d+\s*(?:day|days|d|hr|h|m|min|s|sec)|\b(?:asin|sin)\b|\d+(?:\.\d+)?\s*(?:cm|mm|km|m|in|inch|ft|yd|mi|g|kg|mg|lb|oz|l|ml|gal|F|C|K)|\b(?:cm|mm|km|m|in|inch|ft|yd|mi|g|kg|mg|lb|oz|l|ml|gal|F|C|K)\b|[$€£]?\d+(?:\.\d+)?%?/gi, (match) => {
+  return safe.replace(/\$[a-zA-Z_]\w*|""|\d{1,2}:\d{2}(?:am|pm)?|\d{4}-\d{2}-\d{2}|\btoday\b|\d+\s*(?:day|days|d|hr|h|m|min|s|sec)|\b(?:asin|sin)\b|\d+(?:\.\d+)?\s*(?:cm|mm|km|m|in|inch|ft|yd|mi|g|kg|mg|lb|oz|l|ml|gal|F|C|K)|\b(?:cm|mm|km|m|in|inch|ft|yd|mi|g|kg|mg|lb|oz|l|ml|gal|F|C|K)\b|[$€£¥₹₩]?\d+(?:\.\d+)?%?/gi, (match) => {
     if (/^\d{4}-\d{2}-\d{2}$/.test(match) || /^today$/i.test(match)) {
       return `<span class="date">${match}</span>`;
     }
@@ -300,13 +303,29 @@ function highlight(text, idx = 0) {
   });
 }
 
-function compute(text, results, metas) {
+async function compute(text, results, metas) {
   if (!text.trim() || /^\s*#\s/.test(text)) return { display: '', value: null, sym: null, decimals: undefined, assign: null, isTime: false, timeOfDay: false, isDate: false, isDay: false };
   const assign = text.match(/^\s*\$([a-zA-Z_]\w*)\s*=\s*(.+)$/);
   let exprText = assign ? assign[2] : text;
   let sym = null;
   let decimals;
-  exprText = exprText.replace(/([$€£])(?=\d)/g, m => { sym = sym || m; decimals = 2; return ''; });
+  const conv = exprText.match(/^\s*([0-9.]+)\s*([A-Za-z]{3})\s+to\s+([A-Za-z]{3})\s*$/i);
+  if (conv) {
+    const amount = Number(conv[1]);
+    const from = conv[2].toUpperCase();
+    const to = conv[3].toUpperCase();
+    try {
+      const rate = await getRate(from, to);
+      if (typeof rate === 'number') {
+        const value = amount * rate;
+        const symTo = codeToSymbol[to] || null;
+        const display = formatNumber(value, symTo, 2);
+        return { display, value, sym: symTo, decimals: 2, assign: assign ? assign[1] : null, isTime: false, timeOfDay: false, isDate: false, isDay: false };
+      }
+    } catch {}
+    return { display: '', value: null, sym: null, decimals: undefined, assign: null, isTime: false, timeOfDay: false, isDate: false, isDay: false };
+  }
+  exprText = exprText.replace(/([$€£¥₹₩])(?=\d)/g, m => { sym = sym || m; decimals = 2; return ''; });
   let last = null;
   const timeState = { hasTime: false, hasTimeOfDay: false };
   const dateState = { dates: 0, durations: 0 };
@@ -392,13 +411,14 @@ function compute(text, results, metas) {
   }
 }
 
-function recalc(focusIdx = null, caretPos = null) {
+async function recalc(focusIdx = null, caretPos = null) {
   const lines = tabs[currentTab].lines;
   lineResults = [];
   lineMeta = [];
   vars = {};
-  lines.forEach((text, idx) => {
-    const { display, value, sym, decimals, assign, isTime, timeOfDay, isDate, isDay } = compute(text, lineResults, lineMeta);
+  for (let idx = 0; idx < lines.length; idx++) {
+    const text = lines[idx];
+    const { display, value, sym, decimals, assign, isTime, timeOfDay, isDate, isDay } = await compute(text, lineResults, lineMeta);
     const resEl = container.querySelector(`.res[data-index="${idx}"]`);
     const exprEl = container.querySelector(`.expr[data-index="${idx}"]`);
     if (resEl) {
@@ -413,7 +433,7 @@ function recalc(focusIdx = null, caretPos = null) {
     lineResults.push(value);
     lineMeta.push({ value, sym, decimals, display, isTime, timeOfDay, isDate, isDay });
     if (assign) vars[assign] = { value, sym, decimals, display, line: idx, isTime, timeOfDay, isDate, isDay };
-  });
+  }
   if (focusIdx !== null && caretPos !== null) {
     const expr = container.querySelector(`.expr[data-index="${focusIdx}"]`);
     if (expr) setCaret(expr, caretPos);
@@ -485,14 +505,15 @@ document.addEventListener('selectionchange', () => {
   }
 });
 
-function renderTab() {
+async function renderTab() {
   container.innerHTML = '';
   const lines = tabs[currentTab].lines;
   lineResults = [];
   lineMeta = [];
   vars = {};
-  lines.forEach((text, index) => {
-    const { display, value, sym, decimals, assign, isTime, timeOfDay, isDate, isDay } = compute(text, lineResults, lineMeta);
+  for (let index = 0; index < lines.length; index++) {
+    const text = lines[index];
+    const { display, value, sym, decimals, assign, isTime, timeOfDay, isDate, isDay } = await compute(text, lineResults, lineMeta);
     lineResults.push(value);
     lineMeta.push({ value, sym, decimals, display, isTime, timeOfDay, isDate, isDay });
     if (assign) vars[assign] = { value, sym, decimals, display, line: index, isTime, timeOfDay, isDate, isDay };
@@ -524,7 +545,7 @@ function renderTab() {
     line.appendChild(expr);
     line.appendChild(res);
     container.appendChild(line);
-  });
+  }
   updateDivider();
   clampScroll();
   saveState();
@@ -535,7 +556,7 @@ function onInput(e) {
   const caret = getCaret(e.target);
   let raw = e.target.innerText.replace(/,/g, '');
   // constrain currency decimals without auto-appending values
-  raw = raw.replace(/([$€£])(\d+)(\.?)(\d*)/g, (_, sym, intp, dot, dec) => {
+  raw = raw.replace(/([$€£¥₹₩])(\d+)(\.?)(\d*)/g, (_, sym, intp, dot, dec) => {
     return sym + intp + (dot ? '.' + dec.slice(0, 2) : '');
   });
   tabs[currentTab].lines[index] = raw;
@@ -725,6 +746,14 @@ angleModeSelect.addEventListener('change', () => {
   recalc();
   saveState();
 });
+
+if (refreshRatesBtn) {
+  refreshRatesBtn.addEventListener('click', async () => {
+    clearCache();
+    await recalc();
+    showToast('Rates refreshed');
+  });
+}
 
 renderTab();
 window.addEventListener('resize', updateDivider);

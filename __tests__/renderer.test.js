@@ -7,6 +7,11 @@ jest.mock('electron', () => ({
   }
 }));
 
+jest.mock('../exchangeRates.js', () => ({
+  getRate: jest.fn().mockResolvedValue(0.9),
+  clearCache: jest.fn()
+}));
+
 let renderer;
 let ipcRenderer;
 
@@ -35,6 +40,7 @@ function setupDOM() {
       <option value="deg"></option>
       <option value="rad"></option>
     </select>
+    <button id="refresh-rates"></button>
     <div id="version"></div>
     <div id="toast"></div>
   `;
@@ -107,20 +113,35 @@ test('applyTheme updates body classes and notifies main process', () => {
   expect(ipcRenderer.send).toHaveBeenCalledWith('theme', 'light');
 });
 
-test('compute evaluates basic arithmetic operations', () => {
-  const add = renderer.compute('1+2', [], []);
-  const sub = renderer.compute('5-3', [], []);
-  const mul = renderer.compute('4*2', [], []);
-  const div = renderer.compute('8/4', [], []);
+test('compute evaluates basic arithmetic operations', async () => {
+  const add = await renderer.compute('1+2', [], []);
+  const sub = await renderer.compute('5-3', [], []);
+  const mul = await renderer.compute('4*2', [], []);
+  const div = await renderer.compute('8/4', [], []);
   expect(add.value).toBe(3);
   expect(sub.value).toBe(2);
   expect(mul.value).toBe(8);
   expect(div.value).toBe(2);
 });
 
-test('compute evaluates complex arithmetic expressions', () => {
-  const complex = renderer.compute('2*(3+4)-5/(1+1)', [], []);
-  const trig = renderer.compute('sin(90)+cos(0)', [], []);
+test('compute evaluates complex arithmetic expressions', async () => {
+  const complex = await renderer.compute('2*(3+4)-5/(1+1)', [], []);
+  const trig = await renderer.compute('sin(90)+cos(0)', [], []);
   expect(complex.value).toBeCloseTo(11.5);
   expect(trig.value).toBeCloseTo(2);
+});
+
+test('compute converts currencies using exchange rates', async () => {
+  const result = await renderer.compute('10 USD to EUR', [], []);
+  const rates = require('../exchangeRates.js');
+  expect(rates.getRate).toHaveBeenCalledWith('USD', 'EUR');
+  expect(result.value).toBeCloseTo(9);
+});
+
+test('refresh button clears cached rates', async () => {
+  const rates = require('../exchangeRates.js');
+  const btn = document.getElementById('refresh-rates');
+  btn.click();
+  await Promise.resolve();
+  expect(rates.clearCache).toHaveBeenCalled();
 });

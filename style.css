@@ -379,8 +379,10 @@ body.light #settings {
 
 .setting label { margin-right: 4px; }
 
+
 .setting select,
-.setting input {
+.setting input,
+.setting button {
   width: 100%;
   padding: 4px 8px;
   background: var(--settings-bg);
@@ -393,8 +395,11 @@ body.light #settings {
   color-scheme: var(--color-scheme);
 }
 
+.setting button { cursor: pointer; }
+
 .setting select:focus,
-.setting input:focus {
+.setting input:focus,
+.setting button:focus {
   outline: none;
   border-color: var(--answer-color);
 }
