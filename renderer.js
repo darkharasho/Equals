@@ -53,6 +53,7 @@ function setCaret(el, pos) {
 const container = document.getElementById('container');
 const tabBtn = document.getElementById('tab-btn');
 const settingsBtn = document.getElementById('settings-btn');
+const helpBtn = document.getElementById('help-btn');
 const tabMenu = document.getElementById('tab-menu');
 const minBtn = document.getElementById('min-btn');
 const maxBtn = document.getElementById('max-btn');
@@ -66,6 +67,17 @@ const fontSizeInput = document.getElementById('font-size');
 const angleModeSelect = document.getElementById('angle-mode');
 const versionEl = document.getElementById('version');
 const toast = document.getElementById('toast');
+
+if (helpBtn) helpBtn.addEventListener('click', () => {
+  ipcRenderer.send('help:open');
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'F1') {
+    e.preventDefault();
+    ipcRenderer.send('help:open');
+  }
+});
 
 function saveState() {
   const settings = {
