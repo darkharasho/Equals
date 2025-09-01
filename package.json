@@ -53,7 +53,10 @@
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "runAfterFinish": true,
-      "installerSidebar": "app/icons/equals_banner.png"
+      "installerSidebar": "./app/icons/equals_banner.bmp",
+      "uninstallerSidebar": "./app/icons/equals_banner.bmp",
+      "perMachine": true,
+      "deleteAppDataOnUninstall": true
     }
   }
 }
