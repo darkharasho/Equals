@@ -8,10 +8,12 @@ The calculator recognizes the following symbols: `$`, `€`, `£`, `¥`, `₹`, 
 
 ## Conversions
 
-Convert values using ISO codes:
+Convert values using ISO codes, symbols, or currency names:
 
 ```
 10 USD to EUR
+10¥ to USD
+10 Yen to USD
 ```
 
 The app fetches rates from an online API and caches them for an hour.

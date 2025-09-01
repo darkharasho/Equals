@@ -120,6 +120,26 @@ closeBtn.addEventListener('click', () => ipcRenderer.send('window:close'));
 
 const currencyMap = { '$': 'USD', '€': 'EUR', '£': 'GBP', '¥': 'JPY', '₹': 'INR', '₩': 'KRW' };
 const codeToSymbol = Object.fromEntries(Object.entries(currencyMap).map(([s, c]) => [c, s]));
+const currencyNames = {
+  usd: ['usd', 'dollar', 'dollars'],
+  eur: ['eur', 'euro', 'euros'],
+  gbp: ['gbp', 'pound', 'pounds'],
+  jpy: ['jpy', 'yen'],
+  inr: ['inr', 'rupee', 'rupees'],
+  krw: ['krw', 'won']
+};
+const nameToCode = Object.fromEntries(
+  Object.entries(currencyNames).flatMap(([code, names]) => names.map(n => [n, code.toUpperCase()]))
+);
+
+function normalizeCurrency(str) {
+  if (currencyMap[str]) return currencyMap[str];
+  const uc = str.toUpperCase();
+  if (codeToSymbol[uc]) return uc;
+  const lower = str.toLowerCase();
+  if (nameToCode[lower]) return nameToCode[lower];
+  return null;
+}
 
 function deg2rad(deg) { return deg * Math.PI / 180; }
 function rad2deg(rad) { return rad * 180 / Math.PI; }
@@ -260,7 +280,7 @@ function highlight(text, idx = 0) {
   }
   const safe = esc(text);
   const lastIdx = findLastIndex(idx);
-  return safe.replace(/\$[a-zA-Z_]\w*|""|\d{1,2}:\d{2}(?:am|pm)?|\d{4}-\d{2}-\d{2}|\btoday\b|\d+\s*(?:day|days|d|hr|h|m|min|s|sec)|\b(?:asin|sin)\b|\d+(?:\.\d+)?\s*(?:cm|mm|km|m|in|inch|ft|yd|mi|g|kg|mg|lb|oz|l|ml|gal|F|C|K)|\b(?:cm|mm|km|m|in|inch|ft|yd|mi|g|kg|mg|lb|oz|l|ml|gal|F|C|K)\b|[$€£¥₹₩]?\d+(?:\.\d+)?%?/gi, (match) => {
+  return safe.replace(/\$[a-zA-Z_]\w*|""|\d{1,2}:\d{2}(?:am|pm)?|\d{4}-\d{2}-\d{2}|\btoday\b|\d+\s*(?:day|days|d|hr|h|m|min|s|sec)|\b(?:asin|sin)\b|\d+(?:\.\d+)?\s*(?:cm|mm|km|m|in|inch|ft|yd|mi|g|kg|mg|lb|oz|l|ml|gal|F|C|K)|\b(?:cm|mm|km|m|in|inch|ft|yd|mi|g|kg|mg|lb|oz|l|ml|gal|F|C|K)\b|(?:[$€£¥₹₩]?\d+(?:\.\d+)?%?|\d+(?:\.\d+)?[$€£¥₹₩])/gi, (match) => {
     if (/^\d{4}-\d{2}-\d{2}$/.test(match) || /^today$/i.test(match)) {
       return `<span class="date">${match}</span>`;
     }
@@ -290,9 +310,9 @@ function highlight(text, idx = 0) {
       const n = Number(num);
       return `<span class="percent">${formatNumber(n, null, decs)}%</span>`;
     }
-    const sym = match[0];
-    if (currencyMap[sym] && /^\d/.test(match.slice(1))) {
-      const num = match.slice(1);
+    const sym = currencyMap[match[0]] ? match[0] : (currencyMap[match.slice(-1)] ? match.slice(-1) : null);
+    if (sym) {
+      const num = sym === match[0] ? match.slice(1) : match.slice(0, -1);
       const decs = (num.split('.')[1] || '').length;
       const n = Number(num || 0);
       return `<span class="currency">${formatNumber(n, sym, decs)}</span>`;
@@ -309,23 +329,30 @@ async function compute(text, results, metas) {
   let exprText = assign ? assign[2] : text;
   let sym = null;
   let decimals;
-  const conv = exprText.match(/^\s*([0-9.]+)\s*([A-Za-z]{3})\s+to\s+([A-Za-z]{3})\s*$/i);
+  const conv = exprText.match(/^\s*([0-9.]+)\s*([^\s]+)\s+to\s+([^\s]+)\s*$/i);
   if (conv) {
     const amount = Number(conv[1]);
-    const from = conv[2].toUpperCase();
-    const to = conv[3].toUpperCase();
-    try {
-      const rate = await getRate(from, to);
-      if (typeof rate === 'number') {
-        const value = amount * rate;
-        const symTo = codeToSymbol[to] || null;
-        const display = formatNumber(value, symTo, 2);
-        return { display, value, sym: symTo, decimals: 2, assign: assign ? assign[1] : null, isTime: false, timeOfDay: false, isDate: false, isDay: false };
-      }
-    } catch {}
+    const from = normalizeCurrency(conv[2]);
+    const to = normalizeCurrency(conv[3]);
+    if (from && to) {
+      try {
+        const rate = await getRate(from, to);
+        if (typeof rate === 'number') {
+          const value = amount * rate;
+          const symTo = codeToSymbol[to] || null;
+          const display = formatNumber(value, symTo, 2);
+          return { display, value, sym: symTo, decimals: 2, assign: assign ? assign[1] : null, isTime: false, timeOfDay: false, isDate: false, isDay: false };
+        }
+      } catch {}
+    }
     return { display: '', value: null, sym: null, decimals: undefined, assign: null, isTime: false, timeOfDay: false, isDate: false, isDay: false };
   }
-  exprText = exprText.replace(/([$€£¥₹₩])(?=\d)/g, m => { sym = sym || m; decimals = 2; return ''; });
+  exprText = exprText.replace(/([$€£¥₹₩])(?=\d)|(\d+(?:\.\d*)?)([$€£¥₹₩])/g, (match, pre, num, post) => {
+    const s = pre || post;
+    sym = sym || s;
+    decimals = 2;
+    return num || '';
+  });
   let last = null;
   const timeState = { hasTime: false, hasTimeOfDay: false };
   const dateState = { dates: 0, durations: 0 };
@@ -436,7 +463,10 @@ async function recalc(focusIdx = null, caretPos = null) {
   }
   if (focusIdx !== null && caretPos !== null) {
     const expr = container.querySelector(`.expr[data-index="${focusIdx}"]`);
-    if (expr) setCaret(expr, caretPos);
+    if (expr) {
+      setCaret(expr, caretPos);
+      ensureCaretVisible(expr);
+    }
   }
   updateDivider();
   clampScroll();
@@ -463,6 +493,16 @@ function updateDivider() {
 function clampScroll() {
   const max = Math.max(0, container.scrollHeight - container.clientHeight);
   if (container.scrollTop > max) container.scrollTop = max;
+}
+
+function ensureCaretVisible(elem) {
+  const rect = elem.getBoundingClientRect();
+  const parentRect = container.getBoundingClientRect();
+  if (rect.bottom > parentRect.bottom) {
+    container.scrollTop += rect.bottom - parentRect.bottom;
+  } else if (rect.top < parentRect.top) {
+    container.scrollTop -= parentRect.top - rect.top;
+  }
 }
 
 function underlineResult(idx) {
@@ -556,9 +596,9 @@ function onInput(e) {
   const caret = getCaret(e.target);
   let raw = e.target.innerText.replace(/,/g, '');
   // constrain currency decimals without auto-appending values
-  raw = raw.replace(/([$€£¥₹₩])(\d+)(\.?)(\d*)/g, (_, sym, intp, dot, dec) => {
-    return sym + intp + (dot ? '.' + dec.slice(0, 2) : '');
-  });
+  raw = raw
+    .replace(/([$€£¥₹₩])(\d+)(\.?)(\d*)/g, (_, sym, intp, dot, dec) => sym + intp + (dot ? '.' + dec.slice(0, 2) : ''))
+    .replace(/(\d+)(\.?)(\d*)([$€£¥₹₩])/g, (_, intp, dot, dec, sym) => intp + (dot ? '.' + dec.slice(0, 2) : '') + sym);
   tabs[currentTab].lines[index] = raw;
   recalc(index, caret);
 }
@@ -577,6 +617,7 @@ function onKey(e) {
       setCaret(target, 0);
       target.scrollIntoView({ block: 'nearest' });
       clampScroll();
+      ensureCaretVisible(target);
     }
   } else if (e.key === 'Backspace') {
     const caret = getCaret(e.target);
@@ -595,6 +636,7 @@ function onKey(e) {
           setCaret(prev, newPos);
           prev.scrollIntoView({ block: 'nearest' });
           clampScroll();
+          ensureCaretVisible(prev);
         }
       }
     }
@@ -609,6 +651,7 @@ function onKey(e) {
         setCaret(prev, prev.innerText.length);
         prev.scrollIntoView({ block: 'nearest' });
         clampScroll();
+        ensureCaretVisible(prev);
       }
     }
   } else if (e.key === 'ArrowUp') {
@@ -618,6 +661,7 @@ function onKey(e) {
       const pos = Math.min(getCaret(e.target), prev.innerText.length);
       prev.focus();
       setCaret(prev, pos);
+      ensureCaretVisible(prev);
     }
   } else if (e.key === 'ArrowDown') {
     e.preventDefault();
@@ -626,6 +670,7 @@ function onKey(e) {
       const pos = Math.min(getCaret(e.target), next.innerText.length);
       next.focus();
       setCaret(next, pos);
+      ensureCaretVisible(next);
     }
   }
   saveState();
