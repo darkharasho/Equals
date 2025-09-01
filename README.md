@@ -32,6 +32,7 @@ Detailed documentation for Equals lives in the [docs](docs) directory:
    - Also produces a standalone portable `.zip` alongside the setup executable in `dist`
    - The installer lets you choose the install location, optionally launches the app when finished, and includes an uninstaller
    - Any running instance of the app is closed and previous `dist` output is removed before building to prevent file-in-use errors
+   - When publishing, upload the generated `latest.yml` and installers to a GitHub release so the auto-updater can detect new versions
 
 ## Contributing
 1. Fork and clone the repository

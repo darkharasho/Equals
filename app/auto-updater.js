@@ -2,8 +2,11 @@ const { autoUpdater } = require('electron-updater');
 const { dialog } = require('electron');
 
 function initAutoUpdate() {
+  autoUpdater.forceDevUpdateConfig = true;
   autoUpdater.setFeedURL({
-    url: 'https://github.com/darkharasho/equals/releases.atom'
+    provider: 'github',
+    owner: 'darkharasho',
+    repo: 'Equals'
   });
   // show a prompt once the update has been downloaded
   autoUpdater.on('update-downloaded', () => {

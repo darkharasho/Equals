@@ -15,8 +15,11 @@ test('initAutoUpdate checks for updates and prompts to install', async () => {
   const updater = mockUpdateAvailable();
   await initAutoUpdate();
 
+  expect(updater.forceDevUpdateConfig).toBe(true);
   expect(updater.setFeedURL).toHaveBeenCalledWith({
-    url: 'https://github.com/darkharasho/equals/releases.atom'
+    provider: 'github',
+    owner: 'darkharasho',
+    repo: 'Equals'
   });
   expect(updater.checkForUpdatesAndNotify).toHaveBeenCalled();
 
