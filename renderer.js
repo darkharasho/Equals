@@ -8,6 +8,14 @@ let lineMeta = [];
 let vars = {};
 let underlineEl = null;
 
+const helpers = {
+  sum: (...args) => math.sum(...args),
+  avg: (...args) => math.mean(...args),
+  mean: (...args) => math.mean(...args),
+  median: (...args) => math.median(...args),
+  std: (...args) => math.std(...args)
+};
+
 function getCaret(el) {
   const sel = window.getSelection();
   if (!sel.rangeCount) return 0;
@@ -251,13 +259,46 @@ function findLastIndex(idx) {
   return -1;
 }
 
+function expandRanges(expr, results, vars) {
+  return expr
+    .replace(/(\d+)\.\.(\d+)/g, (_, a, b) => {
+      const start = Number(a), end = Number(b);
+      const step = start <= end ? 1 : -1;
+      const arr = [];
+      for (let i = start; step > 0 ? i <= end : i >= end; i += step) {
+        const v = results[i - 1];
+        arr.push(typeof v === 'number' ? v : 0);
+      }
+      return `[${arr.join(',')}]`;
+    })
+    .replace(/\$([a-zA-Z_]\w*)\s*:\s*\$([a-zA-Z_]\w*)/g, (_, a, b) => {
+      const keys = Object.keys(vars).sort();
+      const start = keys.indexOf(a);
+      const end = keys.indexOf(b);
+      if (start === -1 || end === -1) return '[]';
+      const [s, e] = start <= end ? [start, end] : [end, start];
+      const arr = keys.slice(s, e + 1).map(k => vars[k].value);
+      return `[${arr.join(',')}]`;
+    })
+    .replace(/(\d+)\s*:\s*(\d+)/g, (_, a, b) => {
+      const start = Number(a), end = Number(b);
+      const step = start <= end ? 1 : -1;
+      const arr = [];
+      for (let i = start; step > 0 ? i <= end : i >= end; i += step) {
+        const v = results[i - 1];
+        arr.push(typeof v === 'number' ? v : 0);
+      }
+      return `[${arr.join(',')}]`;
+    });
+}
+
 function highlight(text, idx = 0) {
   if (/^\s*#\s/.test(text)) {
     return `<span class="comment">${esc(text)}</span>`;
   }
   const safe = esc(text);
   const lastIdx = findLastIndex(idx);
-  return safe.replace(/\$[a-zA-Z_]\w*|""|\d{1,2}:\d{2}(?:am|pm)?|\d{4}-\d{2}-\d{2}|\btoday\b|\d+\s*(?:day|days|d|hr|h|m|min|s|sec)|\b(?:asin|sin)\b|\d+(?:\.\d+)?\s*(?:cm|mm|km|m|in|inch|ft|yd|mi|g|kg|mg|lb|oz|l|ml|gal|F|C|K)|\b(?:cm|mm|km|m|in|inch|ft|yd|mi|g|kg|mg|lb|oz|l|ml|gal|F|C|K)\b|[$€£]?\d+(?:\.\d+)?%?/gi, (match) => {
+  return safe.replace(/\$[a-zA-Z_]\w*:\$[a-zA-Z_]\w*|\d+\.\.\d+|\$[a-zA-Z_]\w*|""|\d{1,2}:\d{2}(?:am|pm)?|\d{4}-\d{2}-\d{2}|\btoday\b|\d+\s*(?:day|days|d|hr|h|m|min|s|sec)|\b(?:asin|sin)\b|\d+(?:\.\d+)?\s*(?:cm|mm|km|m|in|inch|ft|yd|mi|g|kg|mg|lb|oz|l|ml|gal|F|C|K)|\b(?:cm|mm|km|m|in|inch|ft|yd|mi|g|kg|mg|lb|oz|l|ml|gal|F|C|K)\b|\d+:\d+|[$€£]?\d+(?:\.\d+)?%?/gi, (match) => {
     if (/^\d{4}-\d{2}-\d{2}$/.test(match) || /^today$/i.test(match)) {
       return `<span class="date">${match}</span>`;
     }
@@ -269,6 +310,9 @@ function highlight(text, idx = 0) {
     }
     if (/^\d{1,2}:\d{2}(?:am|pm)?$/i.test(match) || /^\d+\s*(?:hr|h|m|min|s|sec)$/i.test(match)) {
       return `<span class="time">${match}</span>`;
+    }
+    if (/^\$[a-zA-Z_]\w*:\$[a-zA-Z_]\w*$/.test(match) || /^\d+\.\.\d+$/.test(match) || /^\d+:\d+$/.test(match)) {
+      return `<span class="range">${match}</span>`;
     }
     if (/^\d+(?:\.\d+)?\s*(?:cm|mm|km|m|in|inch|ft|yd|mi|g|kg|mg|lb|oz|l|ml|gal|F|C|K)$/i.test(match) || /^(?:cm|mm|km|m|in|inch|ft|yd|mi|g|kg|mg|lb|oz|l|ml|gal|F|C|K)$/i.test(match)) {
       return `<span class="unit">${match}</span>`;
@@ -307,6 +351,7 @@ function compute(text, results, metas) {
   let sym = null;
   let decimals;
   exprText = exprText.replace(/([$€£])(?=\d)/g, m => { sym = sym || m; decimals = 2; return ''; });
+  exprText = exprText.replace(/,/g, '');
   let last = null;
   const timeState = { hasTime: false, hasTimeOfDay: false };
   const dateState = { dates: 0, durations: 0 };
@@ -314,7 +359,7 @@ function compute(text, results, metas) {
     const m = metas[i];
     if (m && typeof m.value === 'number') { last = m; break; }
   }
-  exprText = exprText
+  exprText = expandRanges(exprText, results, vars)
     .replace(/""/g, () => {
       if (!sym && last && last.sym) { sym = last.sym; decimals = last.decimals; }
       if (last) {
@@ -340,12 +385,11 @@ function compute(text, results, metas) {
   exprText = replaceTimeTokens(exprText, timeState)
     .replace(/([0-9.]+)\s*([+\-])\s*([0-9.]+)%/g, (_, a, op, b) => `${a}${op}${a}*(${b}/100)`)
     .replace(/([0-9.]+)\s*([*/])\s*([0-9.]+)%/g, (_, a, op, b) => `${a}${op}(${b}/100)`)
-    .replace(/(\d+(?:\.\d+)?)%/g, '($1/100)')
-    .replace(/,/g, '');
+    .replace(/(\d+(?:\.\d+)?)%/g, '($1/100)');
   exprText = replaceUnitTokens(exprText);
   try {
     const useDeg = angleModeSelect.value === 'deg';
-    const scope = {};
+    const scope = { ...helpers };
     if (useDeg) {
       scope.sin = (x) => math.sin(deg2rad(x));
       scope.cos = (x) => math.cos(deg2rad(x));
@@ -737,5 +781,6 @@ module.exports = {
   saveState,
   loadState,
   applyTheme,
-  compute
+  compute,
+  vars
 };

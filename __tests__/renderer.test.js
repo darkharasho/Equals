@@ -9,6 +9,7 @@ jest.mock('electron', () => ({
 
 let renderer;
 let ipcRenderer;
+const math = require('mathjs');
 
 function setupDOM() {
   document.body.innerHTML = `
@@ -135,6 +136,24 @@ test('compute evaluates complex arithmetic expressions', () => {
   const trig = renderer.compute('sin(90)+cos(0)', [], []);
   expect(complex.value).toBeCloseTo(11.5);
   expect(trig.value).toBeCloseTo(2);
+});
+
+test('compute handles line and variable ranges with aggregate helpers', () => {
+  const lineResults = [1, 2, 3, 4, 5];
+  const avg = renderer.compute('avg(1..5)', lineResults, []);
+  expect(avg.value).toBe(3);
+  const mean = renderer.compute('mean(1..5)', lineResults, []);
+  expect(mean.value).toBe(3);
+  renderer.vars.a = { value: 1 };
+  renderer.vars.b = { value: 2 };
+  renderer.vars.c = { value: 3 };
+  renderer.vars.d = { value: 4 };
+  const sum = renderer.compute('sum($a:$d)', [], []);
+  expect(sum.value).toBe(10);
+  const median = renderer.compute('median(1..5)', lineResults, []);
+  expect(median.value).toBe(3);
+  const std = renderer.compute('std(1..5)', lineResults, []);
+  expect(std.value).toBeCloseTo(math.std(lineResults));
 });
 
 test('enter on empty line inserts a new line below', () => {
