@@ -1,14 +1,12 @@
 /** @jest-environment node */
 
 jest.mock('electron-updater', () => ({
-  autoUpdater: {
-    checkForUpdatesAndNotify: jest.fn().mockResolvedValue()
-  }
-}));
+  autoUpdater: {}
+}), { virtual: true });
 
 test('initAutoUpdate checks for updates', async () => {
-  const { initAutoUpdate } = require('../app/auto-updater');
-  const { autoUpdater } = require('electron-updater');
+  const { initAutoUpdate, mockUpdateAvailable } = require('../app/auto-updater');
+  const updater = mockUpdateAvailable();
   await initAutoUpdate();
-  expect(autoUpdater.checkForUpdatesAndNotify).toHaveBeenCalled();
+  expect(updater.checkForUpdatesAndNotify).toHaveBeenCalled();
 });
