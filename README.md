@@ -13,6 +13,7 @@ A tiny Electron calculator that evaluates each line as you type. Expressions are
 - Date-aware calculations with ISO dates and the `today` keyword
 - Copyable results and persistent tabs/settings across sessions
 - Configurable gradients, themes, window size, and font size
+- Keyboard shortcuts for tab management and settings (`Ctrl+T` new tab, `Ctrl+Tab` cycle tabs, `Ctrl+=` open settings)
 
 ## Wiki
 Detailed documentation for Equals lives in the [docs](docs) directory:

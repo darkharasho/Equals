@@ -699,6 +699,7 @@ function renderTabMenu() {
       tabMenu.classList.add('hidden');
       renderTab();
       saveState();
+      showToast(`Switched to ${tabs[currentTab].name}`);
     });
       const edit = document.createElement('span');
       edit.className = 'tab-edit';
@@ -748,6 +749,7 @@ function renderTabMenu() {
     tabMenu.classList.add('hidden');
     renderTab();
     saveState();
+    showToast(`Created ${tabs[currentTab].name}`);
   });
   tabMenu.appendChild(newItem);
 }
@@ -766,6 +768,30 @@ tabBtn.addEventListener('keydown', e => {
 document.addEventListener('click', (e) => {
   if (!tabMenu.classList.contains('hidden') && !tabBtn.contains(e.target) && !tabMenu.contains(e.target)) {
     tabMenu.classList.add('hidden');
+  }
+});
+
+document.addEventListener('keydown', (e) => {
+  if (!(e.ctrlKey || e.metaKey)) return;
+
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    currentTab = (currentTab + 1) % tabs.length;
+    tabMenu.classList.add('hidden');
+    renderTab();
+    saveState();
+    showToast(`Switched to ${tabs[currentTab].name}`);
+  } else if (e.key.toLowerCase() === 't') {
+    e.preventDefault();
+    tabs.push({ name: `Tab ${tabs.length + 1}`, lines: [''] });
+    currentTab = tabs.length - 1;
+    tabMenu.classList.add('hidden');
+    renderTab();
+    saveState();
+    showToast(`Created ${tabs[currentTab].name}`);
+  } else if (e.key === '=') {
+    e.preventDefault();
+    settingsBtn.click();
   }
 });
 
