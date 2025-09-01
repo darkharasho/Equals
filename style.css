@@ -409,6 +409,24 @@ body.light #settings {
   color-scheme: var(--color-scheme);
 }
 
+.gradient-select-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.gradient-select-wrapper select {
+  flex: 1;
+  width: auto;
+}
+
+.gradient-preview {
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--settings-border);
+  border-radius: 4px;
+}
+
 .setting select:focus,
 .setting input:focus {
   outline: none;

@@ -32,22 +32,25 @@
     </div>
     <div class="setting">
       <label for="gradient-select">Gradient:</label>
-      <select id="gradient-select">
-        <option value="#bb87f8,#7aa2f7">Purple-Blue</option>
-        <option value="#7aa2f7,#ffb454">Blue-Orange</option>
-        <option value="#ff6bcb,#00d1b2">Pink-Teal</option>
-        <option value="#ff7b00,#ffee00">Red-Yellow</option>
-        <option value="#00d1b2,#0066ff">Teal-Blue</option>
-        <option value="#ff4e50,#1f1c2c">Coral-Indigo</option>
-        <option value="#56ab2f,#a8e063">Green-Lime</option>
-        <option value="#2E3192,#1BFFFF">Indigo-Cyan</option>
-        <option value="#c471ed,#f7797d">Purple-Pink</option>
-        <option value="#ff9a9e,#fad0c4">Rose-Pearl</option>
-        <option value="#a1c4fd,#c2e9fb">Sky-Cloud</option>
-        <option value="#fddb92,#d1fdff">Gold-Aqua</option>
-        <option value="#5433ff,#20bdff">Purple-Cyan</option>
-      </select>
-    </div>
+      <div class="gradient-select-wrapper">
+        <select id="gradient-select">
+          <option value="#bb87f8,#7aa2f7" style="background: linear-gradient(to right, #bb87f8, #7aa2f7); color: #fff;">Purple-Blue</option>
+          <option value="#7aa2f7,#ffb454" style="background: linear-gradient(to right, #7aa2f7, #ffb454); color: #000;">Blue-Orange</option>
+          <option value="#ff6bcb,#00d1b2" style="background: linear-gradient(to right, #ff6bcb, #00d1b2); color: #000;">Pink-Teal</option>
+          <option value="#ff7b00,#ffee00" style="background: linear-gradient(to right, #ff7b00, #ffee00); color: #000;">Red-Yellow</option>
+          <option value="#00d1b2,#0066ff" style="background: linear-gradient(to right, #00d1b2, #0066ff); color: #fff;">Teal-Blue</option>
+          <option value="#ff4e50,#1f1c2c" style="background: linear-gradient(to right, #ff4e50, #1f1c2c); color: #fff;">Coral-Indigo</option>
+          <option value="#56ab2f,#a8e063" style="background: linear-gradient(to right, #56ab2f, #a8e063); color: #000;">Green-Lime</option>
+          <option value="#2E3192,#1BFFFF" style="background: linear-gradient(to right, #2E3192, #1BFFFF); color: #fff;">Indigo-Cyan</option>
+          <option value="#c471ed,#f7797d" style="background: linear-gradient(to right, #c471ed, #f7797d); color: #000;">Purple-Pink</option>
+          <option value="#ff9a9e,#fad0c4" style="background: linear-gradient(to right, #ff9a9e, #fad0c4); color: #000;">Rose-Pearl</option>
+          <option value="#a1c4fd,#c2e9fb" style="background: linear-gradient(to right, #a1c4fd, #c2e9fb); color: #000;">Sky-Cloud</option>
+          <option value="#fddb92,#d1fdff" style="background: linear-gradient(to right, #fddb92, #d1fdff); color: #000;">Gold-Aqua</option>
+          <option value="#5433ff,#20bdff" style="background: linear-gradient(to right, #5433ff, #20bdff); color: #fff;">Purple-Cyan</option>
+        </select>
+        <div id="gradient-preview" class="gradient-preview"></div>
+      </div>
+      </div>
     <div class="setting">
       <label for="size-select">Window Size:</label>
       <select id="size-select">

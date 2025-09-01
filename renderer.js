@@ -60,6 +60,7 @@ const closeBtn = document.getElementById('close-btn');
 const settingsView = document.getElementById('settings');
 const themeSelect = document.getElementById('theme-select');
 const gradientSelect = document.getElementById('gradient-select');
+const gradientPreview = document.getElementById('gradient-preview');
 const sizeSelect = document.getElementById('size-select');
 const fontSizeInput = document.getElementById('font-size');
 const angleModeSelect = document.getElementById('angle-mode');
@@ -99,12 +100,29 @@ function applyTheme(theme) {
   ipcRenderer.send('theme', theme);
 }
 
-function applySettings() {
-  applyTheme(themeSelect.value);
-  const [c1, c2] = gradientSelect.value.split(',');
+function getLuma(hex) {
+  hex = hex.replace('#', '');
+  if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+  const r = parseInt(hex.substr(0, 2), 16);
+  const g = parseInt(hex.substr(2, 2), 16);
+  const b = parseInt(hex.substr(4, 2), 16);
+  return 0.299 * r + 0.587 * g + 0.114 * b;
+}
+
+function updateGradient(value) {
+  const [c1, c2] = value.split(',');
   document.body.style.setProperty('--grad1', c1);
   document.body.style.setProperty('--grad2', c2);
-  gradientSelect.style.background = '';
+  const grad = `linear-gradient(to right, ${c1}, ${c2})`;
+  gradientSelect.style.background = grad;
+  const avg = (getLuma(c1) + getLuma(c2)) / 2;
+  gradientSelect.style.color = avg > 128 ? '#000' : '#fff';
+  if (gradientPreview) gradientPreview.style.background = grad;
+}
+
+function applySettings() {
+  applyTheme(themeSelect.value);
+  updateGradient(gradientSelect.value);
   const [w, h] = sizeSelect.value.split(',').map(Number);
   if (Number.isFinite(w) && Number.isFinite(h)) {
     ipcRenderer.send('window:resize', { width: w, height: h });
@@ -778,10 +796,7 @@ themeSelect.addEventListener('change', (e) => {
 });
 
 gradientSelect.addEventListener('change', (e) => {
-  const [c1, c2] = e.target.value.split(',');
-  document.body.style.setProperty('--grad1', c1);
-  document.body.style.setProperty('--grad2', c2);
-  gradientSelect.style.background = '';
+  updateGradient(e.target.value);
   saveState();
 });
 
