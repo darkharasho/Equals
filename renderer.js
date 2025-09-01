@@ -100,15 +100,6 @@ function applyTheme(theme) {
   ipcRenderer.send('theme', theme);
 }
 
-function getLuma(hex) {
-  hex = hex.replace('#', '');
-  if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
-  const r = parseInt(hex.substr(0, 2), 16);
-  const g = parseInt(hex.substr(2, 2), 16);
-  const b = parseInt(hex.substr(4, 2), 16);
-  return 0.299 * r + 0.587 * g + 0.114 * b;
-}
-
 function updateGradient(value) {
   const [c1, c2] = value.split(',');
   document.body.style.setProperty('--grad1', c1);
@@ -116,8 +107,7 @@ function updateGradient(value) {
   const grad = `linear-gradient(to right, ${c1}, ${c2})`;
   gradientSelect.style.backgroundImage = grad;
   gradientSelect.style.backgroundColor = 'var(--settings-bg)';
-  const avg = (getLuma(c1) + getLuma(c2)) / 2;
-  gradientSelect.style.color = avg > 128 ? '#000' : '#fff';
+  gradientSelect.style.color = 'var(--text-color)';
   if (gradientPreview) gradientPreview.style.background = grad;
 }
 

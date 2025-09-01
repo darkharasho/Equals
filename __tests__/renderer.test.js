@@ -122,6 +122,8 @@ test('changing gradient updates select background', () => {
   expect(select.style.backgroundImage).toContain('#000000');
   expect(select.style.backgroundImage).toContain('#ffffff');
   expect(select.style.backgroundColor).toBe('var(--settings-bg)');
+  expect(select.style.color).toBe('var(--text-color)');
+  Array.from(select.options).forEach(opt => expect(opt.style.color).toBe(''));
 });
 
 test('applyTheme updates body classes and notifies main process', () => {
