@@ -62,6 +62,8 @@ const settingsView = document.getElementById('settings');
 const themeSelect = document.getElementById('theme-select');
 const gradientSelect = document.getElementById('gradient-select');
 const gradientPreview = document.getElementById('gradient-preview');
+const syntaxSelect = document.getElementById('syntax-select');
+const syntaxPreview = document.getElementById('syntax-preview');
 const sizeSelect = document.getElementById('size-select');
 const fontSizeInput = document.getElementById('font-size');
 const angleModeSelect = document.getElementById('angle-mode');
@@ -83,6 +85,7 @@ function saveState() {
   const settings = {
     theme: themeSelect.value,
     gradient: gradientSelect.value,
+    syntax: syntaxSelect ? syntaxSelect.value : '#bb87f8,#7aa2f7',
     size: sizeSelect.value,
     fontSize: fontSizeInput.value,
     angleMode: angleModeSelect.value
@@ -98,6 +101,7 @@ function loadState() {
     if (saved.settings) {
       themeSelect.value = saved.settings.theme || 'dark';
       gradientSelect.value = saved.settings.gradient || '#bb87f8,#7aa2f7';
+      if (syntaxSelect) syntaxSelect.value = saved.settings.syntax || '#bb87f8,#7aa2f7';
       if (saved.settings.size && saved.settings.size.includes(',')) {
         sizeSelect.value = saved.settings.size;
       } else if (saved.settings.size === 'custom') {
@@ -129,9 +133,50 @@ function updateGradient(value) {
   if (gradientPreview) gradientPreview.style.background = grad;
 }
 
+function mixColors(c1, c2, w) {
+  const f = (c) => {
+    const n = parseInt(c.slice(1), 16);
+    return [n >> 16, (n >> 8) & 0xff, n & 0xff];
+  };
+  const [r1, g1, b1] = f(c1);
+  const [r2, g2, b2] = f(c2);
+  const r = Math.round(r1 * (1 - w) + r2 * w);
+  const g = Math.round(g1 * (1 - w) + g2 * w);
+  const b = Math.round(b1 * (1 - w) + b2 * w);
+  return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
+}
+
+function updateSyntaxGradient(value) {
+  const [c1, c2] = value.split(',');
+  const mix = (w) => mixColors(c1, c2, w);
+  const vars = {
+    '--text-color': mix(0.5),
+    '--number-color': mix(0.1),
+    '--answer-color': mix(0.2),
+    '--percent-color': mix(0.3),
+    '--currency-color': mix(0.4),
+    '--var-color': mix(0.5),
+    '--range-color': mix(0.6),
+    '--comment-color': mix(0.7),
+    '--time-color': mix(0.8),
+    '--trig-color': mix(0.9),
+    '--unit-color': mix(0.35),
+    '--date-color': mix(0.65)
+  };
+  for (const [k, v] of Object.entries(vars)) {
+    document.body.style.setProperty(k, v);
+  }
+  const grad = `linear-gradient(to right, ${c1}, ${c2})`;
+  syntaxSelect.style.backgroundImage = grad;
+  syntaxSelect.style.backgroundColor = 'var(--settings-bg)';
+  syntaxSelect.style.color = 'var(--text-color)';
+  if (syntaxPreview) syntaxPreview.style.background = grad;
+}
+
 function applySettings() {
   applyTheme(themeSelect.value);
   updateGradient(gradientSelect.value);
+  if (syntaxSelect) updateSyntaxGradient(syntaxSelect.value);
   const [w, h] = sizeSelect.value.split(',').map(Number);
   if (Number.isFinite(w) && Number.isFinite(h)) {
     ipcRenderer.send('window:resize', { width: w, height: h });
@@ -855,6 +900,7 @@ settingsBtn.addEventListener('keydown', e => {
 
 themeSelect.addEventListener('change', (e) => {
   applyTheme(e.target.value);
+  if (syntaxSelect) updateSyntaxGradient(syntaxSelect.value);
   saveState();
 });
 
@@ -862,6 +908,13 @@ gradientSelect.addEventListener('change', (e) => {
   updateGradient(e.target.value);
   saveState();
 });
+
+if (syntaxSelect) {
+  syntaxSelect.addEventListener('change', (e) => {
+    updateSyntaxGradient(e.target.value);
+    saveState();
+  });
+}
 
 sizeSelect.addEventListener('change', (e) => {
   const [w, h] = e.target.value.split(',').map(Number);
@@ -909,6 +962,7 @@ module.exports = {
   saveState,
   loadState,
   applyTheme,
+  updateSyntaxGradient,
   compute,
   vars
 };
