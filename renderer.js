@@ -769,6 +769,28 @@ document.addEventListener('click', (e) => {
   }
 });
 
+document.addEventListener('keydown', (e) => {
+  if (!(e.ctrlKey || e.metaKey)) return;
+
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    currentTab = (currentTab + 1) % tabs.length;
+    tabMenu.classList.add('hidden');
+    renderTab();
+    saveState();
+  } else if (e.key.toLowerCase() === 't') {
+    e.preventDefault();
+    tabs.push({ name: `Tab ${tabs.length + 1}`, lines: [''] });
+    currentTab = tabs.length - 1;
+    tabMenu.classList.add('hidden');
+    renderTab();
+    saveState();
+  } else if (e.key === ',') {
+    e.preventDefault();
+    settingsBtn.click();
+  }
+});
+
 settingsBtn.addEventListener('click', () => {
   const showing = !settingsView.classList.toggle('hidden');
   container.classList.toggle('hidden', showing);
