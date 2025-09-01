@@ -9,8 +9,18 @@ A tiny Electron calculator that evaluates each line as you type. Expressions are
 - Mica/Acrylic themed window with rounded gradient border
 - Line-by-line calculations with syntax highlighting
 - Currency, percent, and `$name =` variable support
+- Unit-aware calculations and conversions
 - Copyable results and persistent tabs/settings across sessions
 - Configurable gradients, themes, window size, and font size
+
+## Wiki
+Detailed documentation for Equals lives in the [docs](docs) directory:
+
+- [Unit tokens](docs/units.md) – compact measurements and conversions such as `5cm` or `32F to C`.
+- [Variables and references](docs/variables.md) – reuse values with `$name` and `""`.
+- [Time expressions](docs/time.md) – mix `12:30pm`, `2h`, `45m`, and more.
+- [Currency, percent, and number formatting](docs/formatting.md) – locale-aware output.
+- [Tabs and settings](docs/interface.md) – managing tabs, themes, and window options.
 
 ## Building
 1. Run `npm install`
