@@ -1,5 +1,6 @@
 const { app, BrowserWindow, ipcMain, nativeTheme } = require('electron');
 const path = require('path');
+const { initAutoUpdate } = require('./app/auto-updater');
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -100,6 +101,10 @@ ipcMain.handle('app:version', () => app.getVersion());
 
 app.whenReady().then(() => {
   createWindow();
+
+  if (app.isPackaged) {
+    initAutoUpdate();
+  }
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
