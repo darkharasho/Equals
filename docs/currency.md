@@ -13,6 +13,8 @@ Convert values using ISO codes, symbols, or currency names:
 ```
 10 USD to EUR
 10¥ to USD
+¥10 to USD
+¥10 to $
 10 Yen to USD
 ```
 

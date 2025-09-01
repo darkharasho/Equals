@@ -152,6 +152,20 @@ test('compute converts currencies using currency names', async () => {
   expect(result.value).toBeCloseTo(9);
 });
 
+test('compute converts currencies using leading symbol', async () => {
+  const result = await renderer.compute('¥10 to USD', [], []);
+  const rates = require('../app/exchangeRates.js');
+  expect(rates.getRate).toHaveBeenCalledWith('JPY', 'USD');
+  expect(result.value).toBeCloseTo(9);
+});
+
+test('compute converts currencies using symbols for both currencies', async () => {
+  const result = await renderer.compute('¥10 to $', [], []);
+  const rates = require('../app/exchangeRates.js');
+  expect(rates.getRate).toHaveBeenCalledWith('JPY', 'USD');
+  expect(result.value).toBeCloseTo(9);
+});
+
 test('refresh button clears cached rates', async () => {
   const rates = require('../app/exchangeRates.js');
   const btn = document.getElementById('refresh-rates');

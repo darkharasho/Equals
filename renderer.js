@@ -329,22 +329,30 @@ async function compute(text, results, metas) {
   let exprText = assign ? assign[2] : text;
   let sym = null;
   let decimals;
-  const conv = exprText.match(/^\s*([0-9.]+)\s*([^\s]+)\s+to\s+([^\s]+)\s*$/i);
+  let conv = exprText.match(/^\s*([0-9.]+)\s*([^0-9\s]+)\s+to\s+([^0-9\s]+)\s*$/i);
+  let amount, from, to;
   if (conv) {
-    const amount = Number(conv[1]);
-    const from = normalizeCurrency(conv[2]);
-    const to = normalizeCurrency(conv[3]);
-    if (from && to) {
-      try {
-        const rate = await getRate(from, to);
-        if (typeof rate === 'number') {
-          const value = amount * rate;
-          const symTo = codeToSymbol[to] || null;
-          const display = formatNumber(value, symTo, 2);
-          return { display, value, sym: symTo, decimals: 2, assign: assign ? assign[1] : null, isTime: false, timeOfDay: false, isDate: false, isDay: false };
-        }
-      } catch {}
+    amount = Number(conv[1]);
+    from = normalizeCurrency(conv[2]);
+    to = normalizeCurrency(conv[3]);
+  } else {
+    conv = exprText.match(/^\s*([^0-9\s]+)\s*([0-9.]+)\s+to\s+([^0-9\s]+)\s*$/i);
+    if (conv) {
+      amount = Number(conv[2]);
+      from = normalizeCurrency(conv[1]);
+      to = normalizeCurrency(conv[3]);
     }
+  }
+  if (conv && from && to) {
+    try {
+      const rate = await getRate(from, to);
+      if (typeof rate === 'number') {
+        const value = amount * rate;
+        const symTo = codeToSymbol[to] || null;
+        const display = formatNumber(value, symTo, 2);
+        return { display, value, sym: symTo, decimals: 2, assign: assign ? assign[1] : null, isTime: false, timeOfDay: false, isDate: false, isDay: false };
+      }
+    } catch {}
     return { display: '', value: null, sym: null, decimals: undefined, assign: null, isTime: false, timeOfDay: false, isDate: false, isDay: false };
   }
   exprText = exprText.replace(/([$€£¥₹₩])(?=\d)|(\d+(?:\.\d*)?)([$€£¥₹₩])/g, (match, pre, num, post) => {
@@ -496,7 +504,12 @@ function clampScroll() {
 }
 
 function ensureCaretVisible(elem) {
-  const rect = elem.getBoundingClientRect();
+  const sel = window.getSelection();
+  if (!sel.rangeCount) return;
+  const range = sel.getRangeAt(0).cloneRange();
+  if (!elem.contains(range.endContainer)) return;
+  range.collapse(true);
+  const rect = range.getBoundingClientRect();
   const parentRect = container.getBoundingClientRect();
   if (rect.bottom > parentRect.bottom) {
     container.scrollTop += rect.bottom - parentRect.bottom;
