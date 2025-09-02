@@ -526,6 +526,7 @@ body.light .toc-list a:hover {
   padding: 8px;
   border-radius: 4px;
   overflow-x: auto;
+  line-height: 1.5;
 }
 
 body.light #help-content pre {
@@ -536,6 +537,7 @@ body.light #help-content pre {
   background: rgba(255,255,255,0.05);
   padding: 2px 4px;
   border-radius: 4px;
+  line-height: 1.5;
 }
 
 body.light #help-content code {
