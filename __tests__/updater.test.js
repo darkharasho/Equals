@@ -1,10 +1,25 @@
 /** @jest-environment node */
 
 const mockShowMessageBox = jest.fn().mockResolvedValue({ response: 0 });
+const logSendMock = jest.fn();
 
-jest.mock('electron', () => ({
-  dialog: { showMessageBox: mockShowMessageBox },
-}), { virtual: true });
+const MockBrowserWindow = jest.fn().mockImplementation(() => ({
+  webContents: { send: logSendMock },
+  loadURL: jest.fn(),
+  on: jest.fn(),
+  once: jest.fn((event, cb) => cb && cb()),
+  show: jest.fn(),
+  close: jest.fn(),
+}));
+
+jest.mock(
+  'electron',
+  () => ({
+    dialog: { showMessageBox: mockShowMessageBox },
+    BrowserWindow: MockBrowserWindow,
+  }),
+  { virtual: true }
+);
 
 jest.mock('electron-updater', () => ({
   autoUpdater: {},
@@ -22,6 +37,11 @@ test('initAutoUpdate checks for updates and prompts to install', async () => {
     repo: 'Equals'
   });
   expect(updater.checkForUpdatesAndNotify).toHaveBeenCalled();
+  expect(MockBrowserWindow).toHaveBeenCalled();
+
+  const checkingHandler = updater.on.mock.calls.find(([e]) => e === 'checking-for-update')[1];
+  checkingHandler();
+  expect(logSendMock).toHaveBeenCalledWith('log', expect.stringContaining('Checking for updates'));
 
   const handler = updater.on.mock.calls.find(([e]) => e === 'update-downloaded')[1];
   await handler();
