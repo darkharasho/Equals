@@ -1,6 +1,6 @@
 {
   "name": "equals",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "A minimalist's calculator. just type rows, have tabs, etc",
   "main": "main.js",
   "scripts": {

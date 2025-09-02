@@ -1,5 +1,5 @@
 const { autoUpdater } = require('electron-updater');
-const { dialog } = require('electron');
+const { BrowserWindow, ipcMain } = require('electron');
 
 function initAutoUpdate() {
   autoUpdater.setFeedURL({
@@ -7,20 +7,16 @@ function initAutoUpdate() {
     owner: 'darkharasho',
     repo: 'Equals'
   });
-  // show a prompt once the update has been downloaded
+  // notify renderer to show a toast once the update has been downloaded
   autoUpdater.on('update-downloaded', () => {
-    dialog
-      .showMessageBox({
-        type: 'info',
-        title: 'Update Ready',
-        message: 'A new version has been downloaded. Install now?',
-        buttons: ['Install', 'Later']
-      })
-      .then((result) => {
-        if (result.response === 0) {
-          autoUpdater.quitAndInstall();
-        }
-      });
+    BrowserWindow.getAllWindows().forEach(win => {
+      win.webContents.send('update-downloaded');
+    });
+  });
+
+  // listen for confirmation from the renderer to install the update
+  ipcMain.on('update:install', () => {
+    autoUpdater.quitAndInstall();
   });
 
   // check GitHub for updates and download the latest installer
