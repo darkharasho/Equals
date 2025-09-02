@@ -477,6 +477,7 @@ body.light #settings {
   pointer-events: auto;
   display: flex;
   align-items: center;
+  min-width: 260px;
 }
 
 #toast.confirm button {
@@ -494,6 +495,10 @@ body.light #settings {
   border: none;
   font-size: 14px;
   line-height: 1;
+}
+
+#toast.confirm .toast-msg {
+  flex: 1;
 }
 
 body.light #toast {
