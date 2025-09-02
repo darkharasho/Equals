@@ -1,5 +1,5 @@
 const { autoUpdater } = require('electron-updater');
-const { dialog, BrowserWindow } = require('electron');
+const { app, dialog, BrowserWindow } = require('electron');
 
 let logWin;
 
@@ -32,6 +32,10 @@ function log(message) {
 }
 
 function initAutoUpdate() {
+  if (!app.isPackaged) {
+    return Promise.resolve();
+  }
+
   log('Starting update check');
 
   autoUpdater.setFeedURL({
