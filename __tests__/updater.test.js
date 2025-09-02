@@ -15,7 +15,7 @@ test('initAutoUpdate checks for updates and prompts to install', async () => {
   const updater = mockUpdateAvailable();
   await initAutoUpdate();
 
-  expect(updater.forceDevUpdateConfig).toBe(true);
+  expect(updater.forceDevUpdateConfig).toBeUndefined();
   expect(updater.setFeedURL).toHaveBeenCalledWith({
     provider: 'github',
     owner: 'darkharasho',
