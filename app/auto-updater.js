@@ -2,7 +2,6 @@ const { autoUpdater } = require('electron-updater');
 const { dialog } = require('electron');
 
 function initAutoUpdate() {
-  autoUpdater.forceDevUpdateConfig = true;
   autoUpdater.setFeedURL({
     provider: 'github',
     owner: 'darkharasho',
