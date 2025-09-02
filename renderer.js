@@ -910,6 +910,22 @@ document.addEventListener('keydown', (e) => {
     renderTab();
     saveState();
     showToast(`Created ${tabs[currentTab].name}`);
+  } else if (e.key.toLowerCase() === 'w') {
+    e.preventDefault();
+    if (tabs.length > 1) {
+      const tab = tabs[currentTab];
+      const hasContent = tab.lines.some(line => line.trim() !== '');
+      if (!hasContent || confirm('This tab has content. Close it?')) {
+        const closed = tab.name;
+        tabs.splice(currentTab, 1);
+        if (currentTab >= tabs.length) currentTab = tabs.length - 1;
+        tabMenu.classList.add('hidden');
+        renderTab();
+        renderTabMenu();
+        saveState();
+        showToast(`Closed ${closed}`);
+      }
+    }
   } else if (e.key === '=') {
     e.preventDefault();
     settingsBtn.click();
