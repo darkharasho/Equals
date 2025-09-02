@@ -6,6 +6,7 @@ appearance.
 ## Tabs
 - Click the tab button to create or switch between calculation sets.
 - Each tab remembers its own lines and results.
+- Use keyboard shortcuts: `Ctrl+T` new tab, `Ctrl+Tab` cycle tabs, `Ctrl+W` close tab.
 
 ## Settings
 - Theme: toggle between light and dark modes.
