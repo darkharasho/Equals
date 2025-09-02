@@ -32,10 +32,6 @@ function log(message) {
 }
 
 function initAutoUpdate() {
-  if (!app.isPackaged) {
-    return Promise.resolve();
-  }
-
   log('Starting update check');
 
   autoUpdater.setFeedURL({

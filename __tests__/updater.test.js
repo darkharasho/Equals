@@ -50,35 +50,3 @@ test('initAutoUpdate checks for updates and prompts to install', async () => {
   expect(updater.quitAndInstall).toHaveBeenCalled();
 });
 
-test('initAutoUpdate is a no-op when not packaged', async () => {
-  jest.resetModules();
-  const autoUpdaterMock = {
-    checkForUpdatesAndNotify: jest.fn(),
-    on: jest.fn(),
-    setFeedURL: jest.fn(),
-  };
-
-  const mockWin = jest.fn();
-
-  jest.doMock(
-    'electron',
-    () => ({
-      dialog: { showMessageBox: jest.fn() },
-      BrowserWindow: mockWin,
-      app: { isPackaged: false },
-    }),
-    { virtual: true }
-  );
-
-  jest.doMock(
-    'electron-updater',
-    () => ({ autoUpdater: autoUpdaterMock }),
-    { virtual: true }
-  );
-
-  const { initAutoUpdate } = require('../app/auto-updater');
-  await initAutoUpdate();
-  expect(autoUpdaterMock.checkForUpdatesAndNotify).not.toHaveBeenCalled();
-  expect(mockWin).not.toHaveBeenCalled();
-});
-
