@@ -606,9 +606,25 @@ function recalc(focusIdx = null, caretPos = null) {
 }
 
 function showToast(msg) {
+  toast.classList.remove('confirm');
   toast.textContent = msg;
   toast.classList.add('show');
   setTimeout(() => toast.classList.remove('show'), 1000);
+}
+
+function showConfirmToast(msg, onConfirm) {
+  toast.innerHTML =
+    `<span class="toast-msg">${msg}</span><button class="toast-confirm">Close</button><button class="toast-close">×</button>`;
+  toast.classList.add('show', 'confirm');
+  const hide = () => {
+    toast.classList.remove('show', 'confirm');
+    toast.innerHTML = '';
+  };
+  toast.querySelector('.toast-confirm').addEventListener('click', () => {
+    hide();
+    onConfirm();
+  }, { once: true });
+  toast.querySelector('.toast-close').addEventListener('click', hide, { once: true });
 }
 
 function updateDivider() {
@@ -915,7 +931,7 @@ document.addEventListener('keydown', (e) => {
     if (tabs.length > 1) {
       const tab = tabs[currentTab];
       const hasContent = tab.lines.some(line => line.trim() !== '');
-      if (!hasContent || confirm('This tab has content. Close it?')) {
+      const doClose = () => {
         const closed = tab.name;
         tabs.splice(currentTab, 1);
         if (currentTab >= tabs.length) currentTab = tabs.length - 1;
@@ -924,6 +940,11 @@ document.addEventListener('keydown', (e) => {
         renderTabMenu();
         saveState();
         showToast(`Closed ${closed}`);
+      };
+      if (!hasContent) {
+        doClose();
+      } else {
+        showConfirmToast('This tab has content. Close it?', doClose);
       }
     }
   } else if (e.key === '=') {

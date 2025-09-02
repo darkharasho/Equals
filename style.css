@@ -473,6 +473,29 @@ body.light #settings {
   pointer-events: none;
 }
 
+#toast.confirm {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+}
+
+#toast.confirm button {
+  margin-left: 8px;
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  padding: 0 4px;
+  font-size: 12px;
+  cursor: pointer;
+  color: inherit;
+}
+
+#toast.confirm .toast-close {
+  border: none;
+  font-size: 14px;
+  line-height: 1;
+}
+
 body.light #toast {
   background: rgba(255,255,255,0.8);
   color: #000;
