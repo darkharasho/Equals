@@ -33,6 +33,7 @@
   "build": {
     "appId": "com.equals.app",
     "productName": "Equals",
+    "artifactName": "Equals-${version}-setup.${ext}",
     "directories": {
       "output": "dist"
     },
