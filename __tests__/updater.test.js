@@ -1,9 +1,13 @@
 /** @jest-environment node */
 
-const mockShowMessageBox = jest.fn().mockResolvedValue({ response: 0 });
+const mockSend = jest.fn();
+const mockWindow = { webContents: { send: mockSend } };
+const mockGetAllWindows = jest.fn(() => [mockWindow]);
+const mockIpcOn = jest.fn();
 
 jest.mock('electron', () => ({
-  dialog: { showMessageBox: mockShowMessageBox },
+  BrowserWindow: { getAllWindows: mockGetAllWindows },
+  ipcMain: { on: mockIpcOn },
 }), { virtual: true });
 
 jest.mock('electron-updater', () => ({
@@ -24,8 +28,11 @@ test('initAutoUpdate checks for updates and prompts to install', async () => {
   expect(updater.checkForUpdatesAndNotify).toHaveBeenCalled();
 
   const handler = updater.on.mock.calls.find(([e]) => e === 'update-downloaded')[1];
-  await handler();
-  expect(mockShowMessageBox).toHaveBeenCalled();
+  handler();
+  expect(mockGetAllWindows).toHaveBeenCalled();
+  expect(mockSend).toHaveBeenCalledWith('update-downloaded');
+
+  const installHandler = mockIpcOn.mock.calls.find(([e]) => e === 'update:install')[1];
+  installHandler();
   expect(updater.quitAndInstall).toHaveBeenCalled();
 });
-

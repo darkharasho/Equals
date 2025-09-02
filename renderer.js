@@ -222,6 +222,12 @@ ipcRenderer.invoke('app:version').then(v => {
   if (versionEl) versionEl.textContent = 'v' + v;
 });
 
+ipcRenderer.on('update-downloaded', () => {
+  showConfirmToast('A new version has been downloaded. Install now?', () => {
+    ipcRenderer.send('update:install');
+  }, 'Install');
+});
+
 minBtn.addEventListener('click', () => ipcRenderer.send('window:minimize'));
 maxBtn.addEventListener('click', () => ipcRenderer.send('window:maximize'));
 closeBtn.addEventListener('click', () => ipcRenderer.send('window:close'));
@@ -612,9 +618,9 @@ function showToast(msg) {
   setTimeout(() => toast.classList.remove('show'), 1000);
 }
 
-function showConfirmToast(msg, onConfirm) {
+function showConfirmToast(msg, onConfirm, confirmText = 'Close') {
   toast.innerHTML =
-    `<span class="toast-msg">${msg}</span><button class="toast-confirm">Close</button><button class="toast-close">×</button>`;
+    `<span class="toast-msg">${msg}</span><button class="toast-confirm">${confirmText}</button><button class="toast-close">×</button>`;
   toast.classList.add('show', 'confirm');
   const hide = () => {
     toast.classList.remove('show', 'confirm');
