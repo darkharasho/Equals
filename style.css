@@ -360,6 +360,10 @@ body.light .window-btn:hover {
   user-select: none;
 }
 
+body.light #logo {
+  color: #000;
+}
+
 #settings {
   padding: 8px;
   height: calc(100% - 24px);
@@ -394,7 +398,10 @@ body.light #settings {
   scrollbar-color: rgba(0,0,0,0.2) var(--settings-bg);
 }
 
-.setting label { margin-right: 4px; }
+.setting label {
+  margin-right: 4px;
+  color: #fff;
+}
 
 .setting select,
 .setting input {
@@ -408,6 +415,30 @@ body.light #settings {
   appearance: none;
   box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
   color-scheme: var(--color-scheme);
+}
+
+/* Keep settings text white in dark mode and black in light mode */
+.setting label,
+.setting select,
+.setting input,
+.setting select option {
+  color: #fff;
+}
+
+body.light .setting label,
+body.light .setting select,
+body.light .setting input,
+body.light .setting select option {
+  color: #000;
+}
+
+/* Ensure selected dropdown text matches theme */
+.setting select option:checked {
+  color: #fff;
+}
+
+body.light .setting select option:checked {
+  color: #000;
 }
 
 .gradient-select-wrapper {
@@ -436,15 +467,14 @@ body.light #settings {
 
 .setting select option {
   background: var(--settings-bg);
-  color: var(--text-color);
 }
 
-/* Ensure gradient theme dropdown text remains visible */
+/* Ensure gradient and syntax dropdown text remain legible */
 #gradient-select,
 #syntax-select,
 #gradient-select option,
 #syntax-select option {
-  color: #fff;
+  color: inherit;
 }
 
 #angle-mode {

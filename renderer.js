@@ -129,7 +129,7 @@ function updateGradient(value) {
   const grad = `linear-gradient(to right, ${c1}, ${c2})`;
   gradientSelect.style.backgroundImage = '';
   gradientSelect.style.backgroundColor = 'var(--settings-bg)';
-  gradientSelect.style.color = '#fff';
+  gradientSelect.style.color = document.body.classList.contains('light') ? '#000' : '#fff';
   if (gradientPreview) gradientPreview.style.background = grad;
 }
 
@@ -171,7 +171,7 @@ function updateSyntaxGradient(value) {
     }
     syntaxSelect.style.backgroundImage = '';
     syntaxSelect.style.backgroundColor = 'var(--settings-bg)';
-    syntaxSelect.style.color = '#fff';
+    syntaxSelect.style.color = document.body.classList.contains('light') ? '#000' : '#fff';
     if (syntaxPreview)
       syntaxPreview.style.background = 'linear-gradient(to right, #7aa2f7, #ffb454, #6a9955, #ff6bcb)';
     return;
@@ -199,7 +199,7 @@ function updateSyntaxGradient(value) {
   const grad = `linear-gradient(to right, ${c1}, ${c2})`;
   syntaxSelect.style.backgroundImage = '';
   syntaxSelect.style.backgroundColor = 'var(--settings-bg)';
-  syntaxSelect.style.color = '#fff';
+  syntaxSelect.style.color = document.body.classList.contains('light') ? '#000' : '#fff';
   if (syntaxPreview) syntaxPreview.style.background = grad;
 }
 
@@ -973,6 +973,7 @@ settingsBtn.addEventListener('keydown', e => {
 
 themeSelect.addEventListener('change', (e) => {
   applyTheme(e.target.value);
+  updateGradient(gradientSelect.value);
   if (syntaxSelect) updateSyntaxGradient(syntaxSelect.value);
   saveState();
 });
