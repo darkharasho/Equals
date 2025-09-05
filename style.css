@@ -398,7 +398,10 @@ body.light #settings {
   scrollbar-color: rgba(0,0,0,0.2) var(--settings-bg);
 }
 
-.setting label { margin-right: 4px; }
+.setting label {
+  margin-right: 4px;
+  color: #fff;
+}
 
 .setting select,
 .setting input {
