@@ -2,9 +2,9 @@
 
 A tiny Electron calculator that evaluates each line as you type. Expressions are left-aligned while answers appear on the right, and the interface supports multiple tabs, themed gradients, and smart number formatting for currency, percentages, and variables.
 
-<img width="300" height="300" alt="image" src="https://github.com/user-attachments/assets/c8596c5b-bc9b-45e7-8ccf-73bb59c127f4" /> <img width="300" height="300" alt="image" src="https://github.com/user-attachments/assets/a94f2080-682e-4d49-bfcb-55c15cf17aa3" /> <img width="300" height="300" alt="image" src="https://github.com/user-attachments/assets/2e7de768-0c1c-4837-8ef4-a1db8fb65beb" />
-
-<img width="300" height="300" alt="image" src="https://github.com/user-attachments/assets/75256c9a-4375-4aa1-9927-af7270932ff7" /> <img width="300" height="300" alt="image" src="https://github.com/user-attachments/assets/7ac6c637-dc82-402a-b8c6-4ff52a7f18dd" />
+<img width="300" height="300" alt="image" src="https://github.com/user-attachments/assets/c8596c5b-bc9b-45e7-8ccf-73bb59c127f4" /> <img width="300" height="300" alt="image" src="https://github.com/user-attachments/assets/a94f2080-682e-4d49-bfcb-55c15cf17aa3" /> 
+<img width="300" height="300" alt="image" src="https://github.com/user-attachments/assets/2e7de768-0c1c-4837-8ef4-a1db8fb65beb" /> <img width="300" height="300" alt="image" src="https://github.com/user-attachments/assets/75256c9a-4375-4aa1-9927-af7270932ff7" /> 
+<img width="300" height="300" alt="image" src="https://github.com/user-attachments/assets/7ac6c637-dc82-402a-b8c6-4ff52a7f18dd" />
 
 <img width="603" height="533" alt="image" src="https://github.com/user-attachments/assets/82eebbae-7237-4709-ba25-96968657db50" />
 
