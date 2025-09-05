@@ -360,6 +360,10 @@ body.light .window-btn:hover {
   user-select: none;
 }
 
+body.light #logo {
+  color: #000;
+}
+
 #settings {
   padding: 8px;
   height: calc(100% - 24px);
@@ -410,6 +414,13 @@ body.light #settings {
   color-scheme: var(--color-scheme);
 }
 
+body.light .setting label,
+body.light .setting select,
+body.light .setting input,
+body.light .setting select option {
+  color: #000;
+}
+
 .gradient-select-wrapper {
   display: flex;
   align-items: center;
@@ -445,6 +456,13 @@ body.light #settings {
 #gradient-select option,
 #syntax-select option {
   color: #fff;
+}
+
+body.light #gradient-select,
+body.light #syntax-select,
+body.light #gradient-select option,
+body.light #syntax-select option {
+  color: #000;
 }
 
 #angle-mode {
