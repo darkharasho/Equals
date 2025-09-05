@@ -421,6 +421,11 @@ body.light .setting select option {
   color: #000;
 }
 
+/* Ensure selected dropdown text is black in light theme */
+body.light .setting select option:checked {
+  color: #000;
+}
+
 .gradient-select-wrapper {
   display: flex;
   align-items: center;
