@@ -417,6 +417,14 @@ body.light #settings {
   color-scheme: var(--color-scheme);
 }
 
+/* Keep settings text white in dark mode and black in light mode */
+.setting label,
+.setting select,
+.setting input,
+.setting select option {
+  color: #fff;
+}
+
 body.light .setting label,
 body.light .setting select,
 body.light .setting input,
@@ -424,7 +432,11 @@ body.light .setting select option {
   color: #000;
 }
 
-/* Ensure selected dropdown text is black in light theme */
+/* Ensure selected dropdown text matches theme */
+.setting select option:checked {
+  color: #fff;
+}
+
 body.light .setting select option:checked {
   color: #000;
 }
@@ -455,22 +467,14 @@ body.light .setting select option:checked {
 
 .setting select option {
   background: var(--settings-bg);
-  color: var(--text-color);
 }
 
-/* Ensure gradient theme dropdown text remains visible */
+/* Ensure gradient and syntax dropdown text remain legible */
 #gradient-select,
 #syntax-select,
 #gradient-select option,
 #syntax-select option {
-  color: #fff;
-}
-
-body.light #gradient-select,
-body.light #syntax-select,
-body.light #gradient-select option,
-body.light #syntax-select option {
-  color: #000;
+  color: inherit;
 }
 
 #angle-mode {
