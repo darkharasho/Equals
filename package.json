@@ -1,6 +1,6 @@
 {
   "name": "equals",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "A minimalist's calculator. just type rows, have tabs, etc",
   "main": "main.js",
   "scripts": {
@@ -43,13 +43,13 @@
     ],
     "win": {
       "target": "nsis",
-      "icon": "app/icons/equals.png"
+      "icon": "app/icons/equals_v2.png"
     },
     "mac": {
-      "icon": "app/icons/equals.png"
+      "icon": "app/icons/equals_v2.png"
     },
     "linux": {
-      "icon": "app/icons/equals.png",
+      "icon": "app/icons/equals_v2.png",
       "target": [
         "AppImage"
       ]
@@ -58,8 +58,8 @@
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "runAfterFinish": true,
-      "installerSidebar": "./app/icons/equals_banner.bmp",
-      "uninstallerSidebar": "./app/icons/equals_banner.bmp",
+      "installerSidebar": "./app/icons/equals_banner_v2.bmp",
+      "uninstallerSidebar": "./app/icons/equals_banner_v2.bmp",
       "perMachine": true,
       "deleteAppDataOnUninstall": true
     },

@@ -15,7 +15,7 @@ function createWindow() {
     backgroundMaterial: 'mica',
     backgroundColor: '#00000000',
     roundedCorners: true,
-    icon: path.join(__dirname, 'app/icons/equals.png'),
+    icon: path.join(__dirname, 'app/icons/equals_v2.png'),
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false
@@ -44,7 +44,7 @@ function createHelpWindow() {
     backgroundColor: '#00000000',
     roundedCorners: true,
     resizable: true,
-    icon: path.join(__dirname, 'app/icons/equals.png'),
+    icon: path.join(__dirname, 'app/icons/equals_v2.png'),
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false
