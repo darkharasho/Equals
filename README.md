@@ -1,4 +1,4 @@
-# <img width="50px" alt="equals" src="https://github.com/user-attachments/assets/8d5cc447-292a-4837-af3e-efe1ab889ecd" /> Equals
+# <img width="50px" alt="equals_v2" src="https://github.com/user-attachments/assets/4c92723e-6b67-4085-9bf6-1b22419367ae" /> Equals
 
 A tiny Electron calculator that evaluates each line as you type. Expressions are left-aligned while answers appear on the right, and the interface supports multiple tabs, themed gradients, and smart number formatting for currency, percentages, and variables.
 
